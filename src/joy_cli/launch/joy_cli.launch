@@ -1,6 +1,0 @@
-<launch>
-	<arg name="veh" doc="Name of vehicle. ex: duckiebot"/>
-	<node name="joy_cli" pkg="joy_cli" type="joy_cli.py" output="screen">
-		<param name="~veh" value="$(arg veh)"/>
-	</node>
-</launch>
