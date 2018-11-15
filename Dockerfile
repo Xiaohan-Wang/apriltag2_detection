@@ -14,7 +14,7 @@ COPY /src /custom_ws/src
 COPY .gitignore /custom_ws
 COPY .catkin_workspace /custom_ws
 COPY node_launch.sh /custom_ws
-COPY ata.robot.yaml /data/config/
+
 
 ENV ROS_HOSTNAME localhost
 
@@ -29,6 +29,8 @@ RUN /bin/bash -c "source /home/software/catkin_ws/devel/setup.bash && catkin_ini
 RUN /bin/bash -c "source /home/software/catkin_ws/devel/setup.bash && catkin_make -j -C /custom_ws"
 RUN echo "source /custom_ws/devel/setup.bash" >> ~/.bashrc
 
+# This section is required to generate machine files that are referenced in pi-camera package.
+COPY ata.robot.yaml /data/config/
 ENV DUCKIETOWN_ROOT /home/software
 ENV DUCKIEFLEET_ROOT /data/config
 
