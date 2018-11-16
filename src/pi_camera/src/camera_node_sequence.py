@@ -81,6 +81,7 @@ class CameraNode(object):
         rospy.loginfo("[%s] Capture Ended." % (self.node_name))
 
     def grabAndPublish(self, stream, publisher):
+        rospy.loginfo("[grabAndPublish]")
         while not self.update_framerate and not self.is_shutdown and not rospy.is_shutdown():
             yield stream
             # Construct image_msg
