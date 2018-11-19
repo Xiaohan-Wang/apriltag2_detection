@@ -1,5 +1,5 @@
-FROM duckietown/rpi-duckiebot-base:master18
-
+#FROM duckietown/rpi-duckiebot-base:master18
+FROM selcukercan/frpi-base:v3
 LABEL maintainer="Selcuk Ercan ercans@ethz.ch"
 
 # REQUIRED ENVIRONMENT VARIABLES THAT HAVE TO BE PASSED WHEN RUNNING THE CONTAINER:
@@ -35,4 +35,5 @@ RUN [ "cross-build-end" ]
 
 WORKDIR /custom_ws
 
-CMD [ "/custom_ws/node_launch.sh" ]
+CMD chmod +x /custom_ws/node_launch.sh
+CMD ["/bin/bash", "-ci", "/custom_ws/node_launch.sh"]

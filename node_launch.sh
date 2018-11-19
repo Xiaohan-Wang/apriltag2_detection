@@ -2,9 +2,8 @@
 
 # setup ros environment
 
-set -e
-source /home/software/docker/env.sh
+#set -e -x
+#source /home/software/docker/env.sh
 
-#echo "[NOTICE6] sourced /catkin_ws/devel/setup.bash"
-
-# roslaunch joy_cli joy_cli.launch veh:=$DUCKIEBOT_NAME
+echo "Launching apriltag2_demo.launch"
+roslaunch apriltags2_ros apriltag2_demo.launch veh:=$HOSTNAME
