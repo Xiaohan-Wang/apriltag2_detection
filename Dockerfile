@@ -29,16 +29,10 @@ RUN /bin/bash -c "source /home/software/catkin_ws/devel/setup.bash && catkin_ini
 RUN /bin/bash -c "source /home/software/catkin_ws/devel/setup.bash && catkin_make -j -C /custom_ws"
 RUN echo "source /custom_ws/devel/setup.bash" >> ~/.bashrc
 
-# This section is required to generate machine files that are referenced in pi-camera package.
-COPY ata.robot.yaml /data/config/
-ENV DUCKIETOWN_ROOT /home/software
-ENV DUCKIEFLEET_ROOT /data/config
-
 RUN /bin/bash -c "set -e && source /home/software/docker/env.sh"
-RUN /bin/bash -c "source /home/software/catkin_ws/devel/setup.bash && cd /home/software && make build-machines"
 
 RUN [ "cross-build-end" ]
 
 WORKDIR /custom_ws
 
-#CMD [ "/custom_ws/node_launch.sh" ]
+CMD [ "/custom_ws/node_launch.sh" ]
