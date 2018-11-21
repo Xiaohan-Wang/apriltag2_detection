@@ -7,27 +7,26 @@
          doc="true for running everything you possibly can on laptop. false for everything running on vehicle."/>
     <arg name="config" default="baseline" doc="Specify a config."/>
     <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman."/>
-
+    <arg name="decimate" default="1.0"/>
 
     <group ns="$(arg veh)">
+	     <!-- Set parameters -->
+	     <rosparam command="load" file="$(find apriltags2_ros)/config/settings.yaml" ns="$(arg node_name)" />
+	     <rosparam command="load" file="$(find apriltags2_ros)/config/tags.yaml" ns="$(arg node_name)" />
 
-	<!-- Set parameters -->
-	<rosparam command="load" file="$(find apriltags2_ros)/config/settings.yaml" ns="$(arg node_name)" />
-	<rosparam command="load" file="$(find apriltags2_ros)/config/tags.yaml" ns="$(arg node_name)" />
+      <!-- run local -->
+      <node if="$(arg local)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="apriltags2_ros_continuous_node" output="screen">
+	        <!-- Remap topics from those used in code to those on the ROS network -->
+         <remap from="image_rect" to="camera_node/image/rect" />
+         <remap from="camera_info" to="camera_node/raw_camera_info" />
 
-        <!-- run local -->
-        <node if="$(arg local)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="apriltags2_ros_continuous_node" output="screen">
-		<!-- Remap topics from those used in code to those on the ROS network -->
-                <remap from="image_rect" to="camera_node/image/rect" />
-                <remap from="camera_info" to="camera_node/raw_camera_info" />
+	       <param name="decimate" value="$(arg decimate)" />
+         <param name="camera_frame" type="str" value="$(arg veh)/color_optical_frame" />
+         <param name="publish_tag_detections_image" type="bool" value="true" />      <!-- default: false -->
+      </node>
 
-                <param name="camera_frame" type="str" value="$(arg veh)/color_optical_frame" />
-                <param name="publish_tag_detections_image" type="bool" value="true" />      <!-- default: false -->
-	</node>
-
-        <!-- run remote -->
-        <node unless="$(arg local)" machine="$(arg veh)" name="$(arg node_name)"  pkg="$(arg pkg_name)" type="apriltags2_ros_continuous_node" output="screen" />
-
+      <!-- run remote -->
+      <node unless="$(arg local)" machine="$(arg veh)" name="$(arg node_name)"  pkg="$(arg pkg_name)" type="apriltags2_ros_continuous_node" output="screen" />
     </group>
 
 </launch>

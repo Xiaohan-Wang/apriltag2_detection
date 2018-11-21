@@ -1,0 +1,13 @@
+<launch>
+	
+	<arg name="number_of_images" default="10" />
+	<arg name="veh"/>
+
+	<group ns="$(arg veh)">
+		<node name="detection_post_processer_node" pkg="apriltags2_ros" type="detection_post_process.py" output="screen">
+			<param name="number_of_images" value="$(arg number_of_images)"/>
+			<param name="veh_name" value="$(arg veh)"/>
+		</node>
+	</group>
+
+</launch>

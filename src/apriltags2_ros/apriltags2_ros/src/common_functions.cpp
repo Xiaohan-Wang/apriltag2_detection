@@ -129,7 +129,14 @@ TagDetector::TagDetector(ros::NodeHandle pnh) :
   td_ = apriltag_detector_create();
   apriltag_detector_add_family(td_, tf_);
   //td_->quad_decimate = (float)decimate_;
-  td_->quad_decimate = (float)3.0;
+
+  if(!pnh.getParam("decimate",td_->quad_decimate))
+  {
+      printf("decimate not specified, using 1.0");
+      td_->quad_decimate = (float)1.0;
+  }
+  else
+      printf("decimate using %f",td_->quad_decimate);
   td_->quad_sigma = (float)blur_;
   td_->nthreads = threads_;
   td_->debug = debug_;
@@ -345,11 +352,11 @@ AprilTagDetectionArray TagDetector::detectTags (
 
   end = clock();
   cost = (double)(end - begin)/CLOCKS_PER_SEC; // seconds
-  
+
   //output the time cost of each step
   timeprofile_display(td_->tp);
   printf("%2d %32s %15f ms %15s ms\n", 12, "pose estimation" , cost*1000, "---" );
-  
+
   // If set, publish the transform /tf topic
   if (publish_tf_) {
     for (unsigned int i=0; i<tag_detection_array.detections.size(); i++) {
@@ -479,20 +486,35 @@ Eigen::Matrix4d TagDetector::getRelativeTransform(
   return T;
 }
 
-void rotationTransform(double x,double y ,double z , double w ) 
-{ 
-double q0 = w; 
-double q1 = x; 
-double q2 = y; 
-double q3 = z; 
+Eigen::Vector3d Quaterniond2Euler(const double x,const double y,const double z,const double w)
+{
+    Eigen::Quaterniond q;
+    q.x() = x;
+    q.y() = y;
+    q.z() = z;
+    q.w() = w;
+    Eigen::Vector3d euler = q.toRotationMatrix().eulerAngles(2, 1, 0);
+    printf("Quaterniond2Euler x:%lf degree ,y:%lf degree ,z:%lf degree\n\n",euler[2],euler[1],euler[0]);
+    //cout << "Quaterniond2Euler result is:" <<endl;
+    //cout << "x = "<< euler[2] << endl ;
+    //cout << "y = "<< euler[1] << endl ;
+    //cout << "z = "<< euler[0] << endl << endl;
+}
+
+void rotationTransform(double x,double y ,double z , double w )
+{
+double q0 = w;
+double q1 = x;
+double q2 = y;
+double q3 = z;
 double rx,ry,rz;
-rx = float(atan2( 2 * (q2*q3 + q0*q1), (q0*q0 - q1*q1 - q2*q2 + q3*q3))); 
-ry = float(asin( -2 * (q1*q3 - q0*q2))); 
+rx = float(atan2( 2 * (q2*q3 + q0*q1), (q0*q0 - q1*q1 - q2*q2 + q3*q3)));
+ry = float(asin( -2 * (q1*q3 - q0*q2)));
 rz = float(atan2( 2 * (q1*q2 + q0*q3), (q0*q0 + q1*q1 - q2*q2 - q3*q3)));
-rx*=180.0/3.141592653589793; 
-ry*=180.0/3.141592653589793; 
-rz*=180.0/3.141592653589793; 
-printf("rotation estimation x:%lf degree ,y:%lf degree ,z:%lf degree\n\n",rx,ry,rz);
+rx*=180.0/3.141592653589793;
+ry*=180.0/3.141592653589793;
+rz*=180.0/3.141592653589793;
+printf("rotationTransform x:%lf degree ,y:%lf degree ,z:%lf degree\n\n",rx,ry,rz);
 }
 
 
@@ -513,6 +535,7 @@ geometry_msgs::PoseWithCovarianceStamped TagDetector::makeTagPose(
   pose.pose.pose.orientation.w = rot_quaternion.w();
   printf("transformation estimation x:%lf cm ,y:%lf cm ,z:%lf cm\n",pose.pose.pose.position.x*100,pose.pose.pose.position.y*100,pose.pose.pose.position.z*100);
   rotationTransform(pose.pose.pose.orientation.x,pose.pose.pose.orientation.y,pose.pose.pose.orientation.z,pose.pose.pose.orientation.w);
+  Quaterniond2Euler(pose.pose.pose.orientation.x,pose.pose.pose.orientation.y,pose.pose.pose.orientation.z,pose.pose.pose.orientation.w);
   return pose;
 }
 

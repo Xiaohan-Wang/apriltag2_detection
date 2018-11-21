@@ -46,6 +46,7 @@
 
 #include "apriltags2_ros/common_functions.h"
 #include <duckietown_msgs/BoolStamped.h>
+#include <std_msgs/String.h>
 
 namespace apriltags2_ros
 {
@@ -70,6 +71,8 @@ class ContinuousDetector
   image_transport::CameraSubscriber camera_image_subscriber_;
   image_transport::Publisher tag_detections_image_publisher_;
   ros::Publisher tag_detections_publisher_;
+  ros::Publisher subprocess_timings_publisher_;
+
   bool on_switch;
 };
 

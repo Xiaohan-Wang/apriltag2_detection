@@ -30,6 +30,7 @@
  */
 
 #include "apriltags2_ros/continuous_detector.h"
+#include <std_msgs/String.h>
 
 namespace apriltags2_ros
 {
@@ -47,6 +48,9 @@ ContinuousDetector::ContinuousDetector (ros::NodeHandle& nh,
                           &ContinuousDetector::imageCallback, this);
   tag_detections_publisher_ =
       nh.advertise<AprilTagDetectionArray>("tag_detections", 1);
+
+  subprocess_timings_publisher_ =
+      nh.advertise<std_msgs::String>("subprocess_timings", 1);
 
   //on_switch = false;
   on_switch = true;
@@ -82,6 +86,10 @@ void ContinuousDetector::imageCallback (
   tag_detections_publisher_.publish(
       tag_detector_.detectTags(cv_image_,camera_info));
 
+  std_msgs::String subprocess_timings;
+  subprocess_timings.data = "deneme";
+
+  subprocess_timings_publisher_.publish(subprocess_timings);
   // Publish the camera image overlaid by outlines of the detected tags and
   // their payload values
   if (draw_tag_detections_image_)
