@@ -39,11 +39,13 @@ extern "C" {
 
 #include <stdio.h>
 #include <sys/time.h>
-#include <string.h>
+#include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "time_util.h"
 #include "zarray.h"
+
 
 struct timeprofile_entry
 {
@@ -108,6 +110,46 @@ static inline void timeprofile_display(timeprofile_t *tp)
 
         lastutime = stamp->utime;
     }
+}
+
+static inline void timeprofile_get_val(timeprofile_t *tp, char *processes_output)
+{
+    int64_t lastutime = tp->utime;
+
+    // char processes_output[1500];
+
+    for (int i = 0; i < zarray_size(tp->stamps); i++) {
+        // define char array to store subprocess timings at each iteration
+        char subprocess_i_output[100];
+        // create a pointer to this array
+        char *p_sub_ps = subprocess_i_output;
+
+        struct timeprofile_entry *stamp;
+
+        zarray_get_volatile(tp->stamps, i, &stamp);
+
+        double cumtime = (stamp->utime - tp->utime)/1000000.0;
+
+        double parttime = (stamp->utime - lastutime)/1000000.0;
+
+        // assign the current formatted line to subprocess_i_output variable
+        // sprintf (String print) stores output on char buffer instead of printing on console.
+        sprintf(subprocess_i_output,"%2d %32s %15f ms %15f ms\n", i, stamp->name, parttime*1000, cumtime*1000);
+
+        // concatenate the current process`s timings to the processes_output
+        // note that both parameters need to be pointers.
+        strcat(processes_output, p_sub_ps);
+
+        lastutime = stamp->utime;
+    }
+    // Explicit NULL setting is not necessary as strings are automatically padded with the NULL that is \0,
+    //strcat(processes_output, "\0");
+
+
+    printf("\n\n [BEG]\n\n");
+    printf(processes_output);
+    printf("\n\n [END]\n\n");
+
 }
 
 static inline uint64_t timeprofile_total_utime(timeprofile_t *tp)

@@ -354,8 +354,14 @@ AprilTagDetectionArray TagDetector::detectTags (
   cost = (double)(end - begin)/CLOCKS_PER_SEC; // seconds
 
   //output the time cost of each step
-  timeprofile_display(td_->tp);
-  printf("%2d %32s %15f ms %15s ms\n", 12, "pose estimation" , cost*1000, "---" );
+  // timeprofile_display(td_->tp);
+  char processes_output[1500];
+  char *pt_processes_output = processes_output;
+
+  timeprofile_get_val(td_->tp, pt_processes_output);
+
+  // processes_output needs to be set back to 0, otherwise memory issues.
+  memset(processes_output, 0, sizeof processes_output);
 
   // If set, publish the transform /tf topic
   if (publish_tf_) {
