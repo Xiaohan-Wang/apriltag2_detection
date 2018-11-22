@@ -85,11 +85,11 @@ void ContinuousDetector::imageCallback (
   // Publish detected tags in the image by AprilTags 2
   tag_detections_publisher_.publish(
       tag_detector_.detectTags(cv_image_,camera_info));
-
+/*
   std_msgs::String subprocess_timings;
   subprocess_timings.data = "deneme";
-
-  subprocess_timings_publisher_.publish(subprocess_timings);
+*/
+  subprocess_timings_publisher_.publish(TagDetector::timings_);
   // Publish the camera image overlaid by outlines of the detected tags and
   // their payload values
   if (draw_tag_detections_image_)
