@@ -73,6 +73,7 @@ class ContinuousDetector
   ros::Publisher tag_detections_publisher_;
   ros::Publisher subprocess_timings_publisher_;
 
+
   bool on_switch;
 };
 

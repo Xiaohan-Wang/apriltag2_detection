@@ -48,6 +48,7 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <typeinfo>
 
 #include <ros/ros.h>
 #include <ros/console.h>
@@ -66,6 +67,7 @@
 #include "apriltags2_ros/AprilTagDetectionArray.h"
 #include "apriltag.h"
 
+#include "std_msgs/String.h"
 namespace apriltags2_ros
 {
 
@@ -170,7 +172,9 @@ class TagDetector
   int refine_decode_;
   int refine_pose_;
   int debug_;
-
+public:
+  std_msgs::String timings_;
+private:
   // AprilTags 2 objects
   apriltag_family_t *tf_;
   apriltag_detector_t *td_;

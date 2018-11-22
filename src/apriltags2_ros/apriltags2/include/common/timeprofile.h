@@ -134,7 +134,7 @@ static inline void timeprofile_get_val(timeprofile_t *tp, char *processes_output
 
         // assign the current formatted line to subprocess_i_output variable
         // sprintf (String print) stores output on char buffer instead of printing on console.
-        sprintf(subprocess_i_output,"%2d %32s %15f ms %15f ms\n", i, stamp->name, parttime*1000, cumtime*1000);
+        sprintf(subprocess_i_output,"%2d %32s %15f ms %15f ms", i, stamp->name, parttime*1000, cumtime*1000);
 
         // concatenate the current process`s timings to the processes_output
         // note that both parameters need to be pointers.

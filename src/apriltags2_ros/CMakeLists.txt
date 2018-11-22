@@ -1,0 +1,85 @@
+cmake_minimum_required(VERSION 3.12)
+project(apriltags2_ros)
+
+set(CMAKE_CXX_STANDARD 14)
+
+include_directories(apriltags2/include)
+include_directories(apriltags2/include/common)
+include_directories(apriltags2_ros/include)
+include_directories(apriltags2_ros/include/apriltags2_ros)
+
+add_executable(apriltags2_ros
+        apriltags2/include/common/doubles.h
+        apriltags2/include/common/doubles_floats_impl.h
+        apriltags2/include/common/floats.h
+        apriltags2/include/common/g2d.h
+        apriltags2/include/common/getopt.h
+        apriltags2/include/common/homography.h
+        apriltags2/include/common/image_f32.h
+        apriltags2/include/common/image_types.h
+        apriltags2/include/common/image_u8.h
+        apriltags2/include/common/image_u8x3.h
+        apriltags2/include/common/image_u8x4.h
+        apriltags2/include/common/matd.h
+        apriltags2/include/common/math_util.h
+        apriltags2/include/common/pam.h
+        apriltags2/include/common/pjpeg.h
+        apriltags2/include/common/pnm.h
+        apriltags2/include/common/postscript_utils.h
+        apriltags2/include/common/string_util.h
+        apriltags2/include/common/svd22.h
+        apriltags2/include/common/thash_impl.h
+        apriltags2/include/common/time_util.h
+        apriltags2/include/common/timeprofile.h
+        apriltags2/include/common/unionfind.h
+        apriltags2/include/common/workerpool.h
+        apriltags2/include/common/zarray.h
+        apriltags2/include/common/zhash.h
+        apriltags2/include/common/zmaxheap.h
+        apriltags2/include/apriltag.h
+        apriltags2/include/apriltag_math.h
+        apriltags2/include/tag16h5.h
+        apriltags2/include/tag25h7.h
+        apriltags2/include/tag25h9.h
+        apriltags2/include/tag36artoolkit.h
+        apriltags2/include/tag36h10.h
+        apriltags2/include/tag36h11.h
+        apriltags2/src/apriltag.c
+        apriltags2/src/apriltag_quad_thresh.c
+        apriltags2/src/g2d.c
+        apriltags2/src/getopt.c
+        apriltags2/src/homography.c
+        apriltags2/src/image_f32.c
+        apriltags2/src/image_u8.c
+        apriltags2/src/image_u8x3.c
+        apriltags2/src/image_u8x4.c
+        apriltags2/src/matd.c
+        apriltags2/src/pam.c
+        apriltags2/src/pjpeg-idct.c
+        apriltags2/src/pjpeg.c
+        apriltags2/src/pnm.c
+        apriltags2/src/string_util.c
+        apriltags2/src/svd22.c
+        apriltags2/src/tag16h5.c
+        apriltags2/src/tag25h7.c
+        apriltags2/src/tag25h9.c
+        apriltags2/src/tag36artoolkit.c
+        apriltags2/src/tag36h10.c
+        apriltags2/src/tag36h11.c
+        apriltags2/src/time_util.c
+        apriltags2/src/unionfind.c
+        apriltags2/src/workerpool.c
+        apriltags2/src/zarray.c
+        apriltags2/src/zhash.c
+        apriltags2/src/zmaxheap.c
+        apriltags2_ros/include/apriltags2_ros/common_functions.h
+        apriltags2_ros/include/apriltags2_ros/continuous_detector.h
+        apriltags2_ros/include/apriltags2_ros/single_image_detector.h
+        apriltags2_ros/scripts/calibrate_bundle.m
+        apriltags2_ros/src/apriltags2_ros_continuous_node.cpp
+        apriltags2_ros/src/apriltags2_ros_single_image_client_node.cpp
+        apriltags2_ros/src/apriltags2_ros_single_image_server_node.cpp
+        apriltags2_ros/src/common_functions.cpp
+        apriltags2_ros/src/continuous_detector.cpp
+        apriltags2_ros/src/detection_post_process.cpp
+        apriltags2_ros/src/single_image_detector.cpp)
