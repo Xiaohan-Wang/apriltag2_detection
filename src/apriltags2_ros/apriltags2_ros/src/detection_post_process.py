@@ -106,7 +106,7 @@ if __name__ == '__main__':
     #print package_ws
 
     ws_params.des_number_of_images = rospy.get_param( host_name + "detection_post_processer_node/number_of_images")
-    ws_params.decimate = rospy.get_param( host_name + "detection_post_processer_node/decimate")
+    ws_params.decimate = rospy.get_param( host_name + "apriltag2_detector_node/decimate")
     
     sub_img = rospy.Subscriber("tag_detections", AprilTagDetectionArray, cbDetection, ws_params)
     rospy.spin()
