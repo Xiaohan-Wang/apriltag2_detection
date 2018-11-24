@@ -18,13 +18,14 @@ class WorkSpaceParams(object):
     single_result_folder_path = None
     summary_folder_path = None
     data = None
+    decimate = None
 
     def __init__(self):
         self.prepareWorkSpace()
 
     def prepareWorkSpace(self):
         #obtain date and file path
-        self.date=datetime.datetime.now().strftime('%Y-%m-%d__%H:%M:%S')
+        self.date=datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
         path_name=path.dirname(__file__)
         self.parent_path=path.dirname(path_name)
 
@@ -80,6 +81,8 @@ def cbDetection(msg, ws_params):
         ox,oy,oz = zip(*ws_params.orientation)
         #save summary result into .yaml file
         summary={
+            'decimate':ws_params.decimate,
+            'total':ws_params.des_number_of_images,
             'x':{'mean':float(np.mean(x)),'min':min(x),'max':max(x),'range':max(x)-min(x),'variance':float(np.var(x))},
             'y':{'mean':float(np.mean(y)),'min':min(y),'max':max(y),'range':max(y)-min(y),'variance':float(np.var(y))},
             'z':{'mean':float(np.mean(z)),'min':min(z),'max':max(z),'range':max(z)-min(z),'variance':float(np.var(z))},
@@ -87,7 +90,8 @@ def cbDetection(msg, ws_params):
             'oy':{'mean':float(np.mean(oy)),'min':min(oy),'max':max(oy),'range':max(oy)-min(oy),'variance':float(np.var(oy))},
             'oz':{'mean':float(np.mean(oz)),'min':min(oz),'max':max(oz),'range':max(oz)-min(oz),'variance':float(np.var(oz))},
 	    }
-        summary_file = path.join(ws_params.parent_path, "test_result", "summary", date + '.yaml')
+        summary_file = path.join(ws_params.parent_path, "test_result", "summary", date + "_" + str(ws_params.decimate) + "_" + str(ws_params.des_number_of_images) + '.yaml')
+        
         with open(summary_file,'w') as f:
             yaml.dump(summary,f,Dumper=yaml.RoundTripDumper)
         rospy.signal_shutdown("work down!")
@@ -100,7 +104,9 @@ if __name__ == '__main__':
     ws_params = WorkSpaceParams()
     host_name = rospy.get_namespace() # /robot_name/package_name
     #print package_ws
-    ws_params.des_number_of_images = rospy.get_param( host_name + "detection_post_processer_node/number_of_images")
 
+    ws_params.des_number_of_images = rospy.get_param( host_name + "detection_post_processer_node/number_of_images")
+    ws_params.decimate = rospy.get_param( host_name + "detection_post_processer_node/decimate")
+    
     sub_img = rospy.Subscriber("tag_detections", AprilTagDetectionArray, cbDetection, ws_params)
     rospy.spin()

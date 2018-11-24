@@ -8,8 +8,10 @@
   <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
 
   <arg name="number_of_sample_images" default="10"/>
-  <rosparam param="$(arg veh)/apriltags2_ros/detection_post_process/number_of_sample_images" subst_value="True">$(arg number_of_sample_images)</rosparam>
+  <arg name="decimate" default="1.0"/>
 
+  <rosparam param="$(arg veh)/apriltags2_ros/detection_post_process/number_of_sample_images" subst_value="True">$(arg number_of_sample_images)</rosparam>
+  <rosparam param="$(arg veh)/apriltags2_ros/detection_post_process/decimate" subst_value="True">$(arg decimate)</rosparam>
 
     <!-- Camera -->
   <include if="$(arg camera)" file="$(find duckietown)/launch/camera.launch">
