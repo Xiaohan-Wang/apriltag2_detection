@@ -3,3 +3,6 @@ devel/
 mete_10sec.bag
 src/apriltags2_ros/apriltags2_ros/bagfile
 src/apriltags2_ros/apriltags2_ros/test_result/
+cmake-build-debug/
+.idea/
+

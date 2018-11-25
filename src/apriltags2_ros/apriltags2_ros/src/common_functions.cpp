@@ -354,8 +354,37 @@ AprilTagDetectionArray TagDetector::detectTags (
   cost = (double)(end - begin)/CLOCKS_PER_SEC; // seconds
 
   //output the time cost of each step
-  timeprofile_display(td_->tp);
-  printf("%2d %32s %15f ms %15s ms\n", 12, "pose estimation" , cost*1000, "---" );
+  // timeprofile_display(td_->tp);
+  char processes_output[1500];
+  char *pt_processes_output = processes_output;
+  std::string process_output_string(processes_output);
+
+  timeprofile_get_val(td_->tp, pt_processes_output);
+
+  // Change type of processes_output char -> string
+  std::string str_processes_output;
+  std::stringstream ss;
+  std::string s;
+
+  for (int i = 0; i<8 ; i++)
+  {
+    processes_output[i] = '0';
+  }
+
+  ss << processes_output;
+  str_processes_output = ss.str();
+  //ss >> s;
+
+  //std::string str_processes_output(1, processes_output);
+
+//  std::cout<<"******"<<std::endl<<std::string(processes_output)<<std::endl<<std::endl<<"*****"<<std::endl;
+
+   timings_.data = str_processes_output;
+  //std::cout << "***** [" << str_processes_output << "] *****" << std::endl;
+  //std::cout << "***** [" << typeid(str_processes_output).name()<< "] *****" << std::endl;
+
+  // processes_output needs to be set back to 0, otherwise memory issues.
+  memset(processes_output, 0, sizeof processes_output);
 
   // If set, publish the transform /tf topic
   if (publish_tf_) {
@@ -371,7 +400,7 @@ AprilTagDetectionArray TagDetector::detectTags (
                                                  detection_names[i]));
     }
   }
-
+  // ROS_DEBUG("Hello %s", "World");
   return tag_detection_array;
 }
 
