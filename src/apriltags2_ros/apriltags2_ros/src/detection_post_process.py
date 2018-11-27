@@ -16,7 +16,7 @@ class WorkSpaceParams(object):
     recieved_images = 0 # topic /mete/tag_detections
     recieved_subprocess_time = 0 # topic /mete/subprocess_timings
     relative_pose = [] # relative pose of each detection
-    subprocess_time = [] # the time of each subprocess of each detection
+    subprocess_time_str = [] # the time of each subprocess of each detection
     single_result_folder_path = None
     summary_folder_path = None
     date = None
@@ -63,7 +63,7 @@ def cbDetection(msg, ws_params):
 
 def cbSubprocessTime(msg, ws_params):
     if(ws_params.recieved_subprocess_time < ws_params.des_number_of_images):  
-        ws_params.subprocess_time.append(msg)
+        ws_params.subprocess_time_str.append(msg)
         print("[POST-PROCESSNG NODE] recorded subprocess time number {} ".format(str(ws_params.recieved_subprocess_time + 1)))
         #print(msg)
         ws_params.recieved_subprocess_time += 1
@@ -74,20 +74,39 @@ def cbSubprocessTime(msg, ws_params):
 def outputToFile(ws_params):
     position = []
     orientation = []
+    subprocess_time = []
+    subprocess_name = []
+    subprocess_number = 11 # if we add the step of relative pose estimation, it should be 12
+
+    #save every single result into .yaml file
     for num in range(0,ws_params.des_number_of_images):
         pos = ws_params.relative_pose[num].pose.pose.pose.position
         ori = ws_params.relative_pose[num].pose.pose.pose.orientation
         ori_degree=QuaternionToEuler(ori.x,ori.y,ori.z,ori.w)
-       
         position.append((pos.x,pos.y,pos.z))
         orientation.append(ori_degree)
         
-        #save every single result into .yaml file
-        single_result={
+        subprocess_time_str =  ws_params.subprocess_time_str[num].data
+        subprocess_time_str_split = filter(None, subprocess_time_str.split('  '))
+        sub_time = {}  
+        subprocess_time.append([]) 
+        for i in range(0, subprocess_number):
+                time = float(subprocess_time_str_split[3*i+2].split()[0])
+                subprocess_time[num].append(time)
+                if(num == 0):
+                    name = subprocess_time_str_split[3*i+1].strip()
+                    subprocess_name.append(name)
+                sub_time[subprocess_name[i]]= time
+        if (num == 0):
+            subprocess_name.append('total time consumption')
+        sub_time[subprocess_name[-1]] = float(subprocess_time_str_split[-1].split()[0])
+        subprocess_time[num].append(float(subprocess_time_str_split[-1].split()[0]))
+
+        single_result = {
             'count': num + 1,
             'pos':{'x':pos.x,'y':pos.y,'z':pos.z},
             'ori':{'ox':ori_degree[0],'oy':ori_degree[1],'oz':ori_degree[2]},
-            'subprocess_time':ws_params.subprocess_time[num].data
+            'subprocess_time':sub_time
         }
         single_result_file = path.join(ws_params.single_result_folder_path , ws_params.date + '_' + str(num + 1) + '.yaml')
         #print(single_result)   
@@ -95,10 +114,22 @@ def outputToFile(ws_params):
             yaml.dump(single_result,f,Dumper=yaml.RoundTripDumper)
    
     
+    #save summary result into ws_params.summary
     x,y,z = zip(*position)
     ox,oy,oz = zip(*orientation)
-    #save summary result into ws_params.summary
-    summary={
+    subprocess_time_comsumption=zip(*subprocess_time)
+
+    time_consumption = {}
+    for i in range(0, subprocess_number + 1): # subprocesses + total time consumption
+        time_consumption[subprocess_name[i]] = {
+            'mean':float(np.mean(subprocess_time_comsumption[i])),
+            'min':min(subprocess_time_comsumption[i]),
+            'max':max(subprocess_time_comsumption[i]),
+            'range':max(subprocess_time_comsumption[i])-min(subprocess_time_comsumption[i]),
+            'variance':float(np.var(subprocess_time_comsumption[i]))
+        }
+
+    summary = {
         'decimate':ws_params.decimate,
         'total':ws_params.des_number_of_images,
         'x':{'mean':float(np.mean(x)),'min':min(x),'max':max(x),'range':max(x)-min(x),'variance':float(np.var(x))},
@@ -107,7 +138,8 @@ def outputToFile(ws_params):
         'ox':{'mean':float(np.mean(ox)),'min':min(ox),'max':max(ox),'range':max(ox)-min(ox),'variance':float(np.var(ox))},
         'oy':{'mean':float(np.mean(oy)),'min':min(oy),'max':max(oy),'range':max(oy)-min(oy),'variance':float(np.var(oy))},
         'oz':{'mean':float(np.mean(oz)),'min':min(oz),'max':max(oz),'range':max(oz)-min(oz),'variance':float(np.var(oz))},
-        }
+        'time consumption':time_consumption
+    }
     summary_file = path.join(ws_params.summary_folder_path, ws_params.date + "_" + str(ws_params.decimate) + "_" + str(ws_params.des_number_of_images) + '.yaml')    
     with open(summary_file,'w') as f:
         yaml.dump(summary,f,Dumper=yaml.RoundTripDumper)
