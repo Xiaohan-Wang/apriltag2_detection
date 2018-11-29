@@ -514,7 +514,14 @@ Eigen::Matrix4d TagDetector::getRelativeTransform(
   T.row(3) << 0,0,0,1;
   return T;
 }
+/*
+Eigen::Vector3d Quaterniond2Euler(Eigen::Vector3d euler){
 
+  Eigen::Vector3d euler_wrapped;
+
+  return euler_wrapped;
+}
+*/
 Eigen::Vector3d Quaterniond2Euler(const double x,const double y,const double z,const double w)
 {
     Eigen::Quaterniond q;
@@ -522,12 +529,43 @@ Eigen::Vector3d Quaterniond2Euler(const double x,const double y,const double z,c
     q.y() = y;
     q.z() = z;
     q.w() = w;
-    Eigen::Vector3d euler = q.toRotationMatrix().eulerAngles(2, 1, 0);
-    printf("Quaterniond2Euler x:%lf degree ,y:%lf degree ,z:%lf degree\n\n",euler[2],euler[1],euler[0]);
-    //cout << "Quaterniond2Euler result is:" <<endl;
-    //cout << "x = "<< euler[2] << endl ;
-    //cout << "y = "<< euler[1] << endl ;
-    //cout << "z = "<< euler[0] << endl << endl;
+
+    Eigen::Vector3d euler_zyx = q.toRotationMatrix().eulerAngles(2, 1, 0);
+    Eigen::Vector3d euler_xyz = q.toRotationMatrix().eulerAngles(0, 1, 2);
+
+    Eigen::Quaterniond q_inv;
+    q_inv.x() = x;
+    q_inv.y() = y;
+    q_inv.z() = z;
+    q_inv.w() = -w;
+
+    Eigen::Vector3d euler_inv_zyx = q_inv.toRotationMatrix().eulerAngles(2, 1, 0);
+    Eigen::Vector3d euler_inv_xyz = q_inv.toRotationMatrix().eulerAngles(0, 1, 2);
+
+    float rad2deg = 180.0/3.141592653589793;
+
+    // Get the pose of the tag in the camera frame
+    // Returns homogeneous transformation matrix [R,t;[0 0 0 1]] which
+    // takes a point expressed in the tag frame to the same point
+    // expressed in the camera frame. As usual, R is the (passive)
+    // rotation from the tag frame to the camera frame and t is the
+    // vector from the camera frame origin to the tag frame origin,
+    // expressed in the camera frame.
+
+    // Note that April Tag returns passive rotation from tag to camera.
+
+    // printf("Remark: from the tag frame to the camera frame (rotate camera )\n");
+    printf("+++++++++++++++++++++++++++++++++ \n");
+    printf("Returned Rotation \n");
+    printf("Quaternions x:%lf  ,y:%lf ,z:%lf, w:%lf \n",x,y,z,w);
+    printf("Quaterniond2Euler ZYX x:%lf degree ,y:%lf degree ,z:%lf degree\n",euler_zyx[2] * rad2deg, euler_zyx[1] * rad2deg, euler_zyx[0] * rad2deg);
+    printf("Quaterniond2Euler XYZ x:%lf degree ,y:%lf degree ,z:%lf degree\n\n",euler_xyz[2] * rad2deg, euler_xyz[1] * rad2deg, euler_xyz[0] * rad2deg);
+
+    printf("Inversed Rotation \n");
+    printf("Quaternions x:%lf  ,y:%lf ,z:%lf, w:%lf \n",x,y,z,-w);
+    printf("Quaterniond2Euler ZYX x:%lf degree ,y:%lf degree ,z:%lf degree\n",euler_inv_zyx[2] * rad2deg, euler_inv_zyx[1] * rad2deg, euler_inv_zyx[0] * rad2deg);
+    printf("Quaterniond2Euler XYZ x:%lf degree ,y:%lf degree ,z:%lf degree\n",euler_inv_xyz[2] * rad2deg, euler_inv_xyz[1] * rad2deg, euler_inv_xyz[0] * rad2deg);
+    printf("+++++++++++++++++++++++++++++++++ \n\n");
 }
 
 void rotationTransform(double x,double y ,double z , double w )

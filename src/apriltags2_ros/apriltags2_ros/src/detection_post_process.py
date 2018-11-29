@@ -6,6 +6,7 @@ import datetime
 from ruamel import yaml
 from os import path
 from os import makedirs
+import tf.transformations as tr
 
 from apriltags2_ros.msg import AprilTagDetectionArray
 from math import atan2,asin
@@ -18,7 +19,16 @@ class WorkSpaceParams(object):
     single_result_folder_path = None
     summary_folder_path = None
     data = None
-
+    TILT = 19
+    """
+    self.camera_x     = self.setupParam("~camera_x", 0.065)
+    self.camera_y     = self.setupParam("~camera_y", 0.0)
+    self.camera_z     = self.setupParam("~camera_z", 0.11)
+    self.camera_theta = self.setupParam("~camera_theta", 19.0)
+    self.scale_x     = self.setupParam("~scale_x", 1)
+    self.scale_y     = self.setupParam("~scale_y", 1)
+    self.scale_z = self.setupParam("~scale_z", 1)
+    """
     def __init__(self):
         self.prepareWorkSpace()
 
@@ -41,13 +51,55 @@ def QuaternionToEuler( x , y , z , w ):
     q1 = x;
     q2 = y;
     q3 = z;
+
     rx = (atan2( 2 * (q2*q3 + q0*q1), (q0*q0 - q1*q1 - q2*q2 + q3*q3)));
     ry = (asin( -2 * (q1*q3 - q0*q2)));
     rz = (atan2( 2 * (q1*q2 + q0*q3), (q0*q0 + q1*q1 - q2*q2 - q3*q3)));
+
     rx*=180.0/3.141592653589793;
     ry*=180.0/3.141592653589793;
     rz*=180.0/3.141592653589793;
+
+    print ("[QuaternionToEuler] quaternion w: {}\tx: {}\ty: {}\tz: {}\t".format(w,x,y,z))
+    print ("[QuaternionToEuler] rx: {}\try: {}\trz: {}\t".format(rx,ry,rz))
+
     return (rx,ry,rz)
+
+def TagDetection2HomegenousTransformation(q,t):
+    # quaterion convention (x,y,z,w)
+    """
+    q = [0.5, 0, 0, 1]
+    t = [1,1,1]
+    """
+    q = [q.x, q.y, q.z, q.w]
+    t = [t.x, t.y, t.z]
+
+    T_q = tr.quaternion_matrix(q)
+    T = T_q.copy()
+    T[:3, 3] = t
+
+    return T
+
+def Camz2Camx():
+    """
+        Returns Homogeneous Transformation that corresponds to Coordinate Transformation (active rotation) from z camera to x camera frame.
+        Z camera frame:
+            Seeing through camera:
+                X -> right
+                Y -> down
+                Z -> forward
+        X camera frame:
+            Seeing through camera:
+                X -> forward
+                Y -> left
+                Z -> up
+        end_Tp_init: Represents passive Transformation, i.e represented vector remains the same wrt to a fixed world frame.
+                     The matrix describes how the basis vectors of are related to each other.
+    """
+    # Initially compensate for the tilt of the camera frame.
+    pas_camz_R_camztilted = tr.rotation_matrix(TILT, [1,0,0])
+
+    # To transform from the camx frame to camz frame we
 
 def cbDetection(msg, ws_params):
     date = ws_params.date
@@ -55,7 +107,14 @@ def cbDetection(msg, ws_params):
     if(ws_params.recieved_images < ws_params.des_number_of_images and len(msg.detections)>0 ):
         pos = msg.detections[0].pose.pose.pose.position
         ori = msg.detections[0].pose.pose.pose.orientation
-        ori_degree=QuaternionToEuler(ori.x,ori.y,ori.z,ori.w)
+
+        #tag_T_camz = toHomegenousTransformation(ori,pos)
+        T_camz = TagDetection2camz(ori,pos)
+        camz_T_camx = Camz2Camx()
+        T_camx = from_T_to(T_camz, camz_T_camx)
+        #T_camz =from_T_to(tag_R_camx, tag_t_camx)
+        #T_robot =from_T_to(tag_R_camx, tag_t_camx)
+        #ori_degree=QuaternionToEuler(ori.x,ori.y,ori.z,ori.w)
 
         ws_params.position.append((pos.x,pos.y,pos.z))
         #orientation.append(QuaternionToEuler(ori.x,ori.y,ori.z,ori.w))
