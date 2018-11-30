@@ -11,6 +11,8 @@ import tf.transformations as tr
 from apriltags2_ros.msg import AprilTagDetectionArray
 from math import atan2,asin
 
+TILT = 19
+
 class WorkSpaceParams(object):
     des_number_of_images = None
     recieved_images = 0
@@ -19,7 +21,7 @@ class WorkSpaceParams(object):
     single_result_folder_path = None
     summary_folder_path = None
     data = None
-    TILT = 19
+
     """
     self.camera_x     = self.setupParam("~camera_x", 0.065)
     self.camera_y     = self.setupParam("~camera_y", 0.0)
@@ -80,7 +82,20 @@ def TagDetection2HomegenousTransformation(q,t):
 
     return T
 
-def Camz2Camx():
+def inverse_homogeneous_transform(T):
+    t = T[0:3,3]
+    R = T[0:3,0:3]
+
+    T_inv = tr.identity_matrix()
+    R_inv = tr.inverse_matrix(R)
+    
+    t_inv = R_inv * -t
+
+    T_inv[0:3,0:3] = R_inv
+    T_inv[0:3,3] = t_inv
+
+    return T_inv
+def Camz2CamzTilt():
     """
         Returns Homogeneous Transformation that corresponds to Coordinate Transformation (active rotation) from z camera to x camera frame.
         Z camera frame:
@@ -93,13 +108,29 @@ def Camz2Camx():
                 X -> forward
                 Y -> left
                 Z -> up
-        end_Tp_init: Represents passive Transformation, i.e represented vector remains the same wrt to a fixed world frame.
-                     The matrix describes how the basis vectors of are related to each other.
+
+        endFrame_Tp_initFrame:
+        Represents passive Transformation, i.e represented vector remains the same wrt to a fixed world frame.
+        The matrix describes how the basis vectors of are related to each other, spesifically it translates
+        a vector expressed in initFrame into a vector expressed in endFrame.
+
+        endFrame_R_initFrame:
+        represents relative orientation of endFrame wrt. initFrame, and is obtained by a series of consecutive relative rotations with rotations post-multiplied:
+        R = R1 * R2 * ...
+
+        endFrame_t_initFrame:
+        represent the position vector from the origin of initFrame to the origin of endFrame expressend in initFrame
     """
     # Initially compensate for the tilt of the camera frame.
-    pas_camz_R_camztilted = tr.rotation_matrix(TILT, [1,0,0])
+    camztilted_T_camz = tr.rotation_matrix(TILT, [1,0,0])
+    camz_T_camztilted = inverse_homogeneous_transform(camztilted_R_camz)
 
-    # To transform from the camx frame to camz frame we
+    print camz_R_camztilted
+    #camz_T_camztilted = tr.identity_matrix()
+    #camz_T_camztilted[0:3,0:3] = camz_R_camztilted
+
+    #print camz_T_camztilted
+    return camz_T_camztilted
 
 def cbDetection(msg, ws_params):
     date = ws_params.date
@@ -109,9 +140,9 @@ def cbDetection(msg, ws_params):
         ori = msg.detections[0].pose.pose.pose.orientation
 
         #tag_T_camz = toHomegenousTransformation(ori,pos)
-        T_camz = TagDetection2camz(ori,pos)
-        camz_T_camx = Camz2Camx()
-        T_camx = from_T_to(T_camz, camz_T_camx)
+        T_camz = TagDetection2HomegenousTransformation(ori,pos)
+        camz_T_camztilt = Camz2CamzTilt()
+        #T_camx = from_T_to(T_camz, camz_T_camx)
         #T_camz =from_T_to(tag_R_camx, tag_t_camx)
         #T_robot =from_T_to(tag_R_camx, tag_t_camx)
         #ori_degree=QuaternionToEuler(ori.x,ori.y,ori.z,ori.w)
