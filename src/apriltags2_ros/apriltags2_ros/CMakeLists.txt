@@ -38,6 +38,8 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES arm)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv7-a -mcpu=cortex-a9 -mfpu=neon -mtune=cortex-a9 -mvectorize-with-neon-quad -ffast-math ")
 endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES arm)
 
+catkin_python_setup()
+
 add_message_files(
   FILES
   AprilTagDetectionArray.msg
@@ -74,6 +76,7 @@ include_directories(include
 
 add_library(common src/common_functions.cpp)
 add_dependencies(common ${PROJECT_NAME}_generate_messages_cpp)
+
 target_link_libraries(common
   ${catkin_LIBRARIES}
   ${Eigen_LIBRARIES}
@@ -113,7 +116,9 @@ target_link_libraries(${PROJECT_NAME}_single_image_client_node
   ${catkin_LIBRARIES}
 )
 
+
+
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
-  add_rostest(tests/test_post_processing.test)
+  add_rostest(tests/test_rotation_utils.test)
 endif()
