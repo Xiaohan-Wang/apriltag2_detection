@@ -54,7 +54,6 @@
   <run_depend>eigen</run_depend>
   <run_depend>libopencv-dev</run_depend>
 
-  <test_depend>rosunit</test_depend>
   <test_depend>unittest</test_depend>
 
 </package>

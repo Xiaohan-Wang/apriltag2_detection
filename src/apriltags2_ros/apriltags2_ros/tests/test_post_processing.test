@@ -1,0 +1,3 @@
+<launch>
+  <test test-name="post_processing" pkg="apriltags2_ros" type="test_post_processing.py" />
+</launch>
