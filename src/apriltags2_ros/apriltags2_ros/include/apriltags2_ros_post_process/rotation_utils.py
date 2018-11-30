@@ -1,6 +1,13 @@
 import tf.transformations as tr
+import numpy as np
+import rospy
 
 TILT  = 19
+
+def col(v):
+    return np.expand_dims(v, axis=1)
+def row(v):
+    return np.expand_dims(v, axis=0)
 
 def QuaternionToEuler( x , y , z , w ):
     q0 = w;
@@ -43,7 +50,7 @@ def inverse_homogeneous_transform(T):
     T_inv = tr.identity_matrix()
     R_inv = tr.inverse_matrix(R)
 
-    t_inv = R_inv * -t
+    t_inv = np.matmul(R_inv,-t)
 
     T_inv[0:3,0:3] = R_inv
     T_inv[0:3,3] = t_inv
