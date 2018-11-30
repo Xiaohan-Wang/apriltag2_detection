@@ -1,5 +1,7 @@
 build/
 devel/
+logs/
 cmake-build-debug/
 .idea/
+.catkin_tools/
 src/apriltags2_ros/apriltags2_ros/test_result/

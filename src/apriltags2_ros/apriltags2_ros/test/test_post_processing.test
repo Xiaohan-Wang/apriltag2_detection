@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="apriltags2_ros" type="detection_post_process.py" name="detection_post_processer_node" />
+  <test test-name="test_post_processing_node" pkg="apriltags2_ros" type="test_post_processing.py" />
+</launch>

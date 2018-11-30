@@ -112,3 +112,8 @@ target_link_libraries(${PROJECT_NAME}_single_image_client_node
   common
   ${catkin_LIBRARIES}
 )
+
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+  add_rostest(test/test_post_processing.test)
+endif()
