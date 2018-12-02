@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import unittest, rosunit, rospy
 import numpy as np
+import math
 import tf.transformations as tr
 from apriltags2_ros_post_process.rotation_utils import *
 
@@ -73,13 +74,33 @@ class RotationUtils(unittest.TestCase):
         camz_p_exp = np.array([-2, -3, 1, 1])
 
         np.testing.assert_almost_equal(camz_p, camz_p_exp)
-
+    """
     def test_get_robot_pose(self):
         q = [0.9585 0.0263 -0.2431 -0.1467]
         t = [0.016 -0.041 0.295]
 
         veh_R_tag, veh_t_tag = get_robot_pose(q,t)
 
+    """
+    def test_euler_XYZ_from_rotation_matrix(self):
+        """
+        r in 'rxyz' is 'r'otating frames indicating rotations are applied consecutively with respect to current
+        frames' axes i.e not "fixed-axis" rotation.
+
+        Rz * Ry * Rx -> "sxyz"
+        Rx * Ry * Rz -> "rxyz"
+        """
+        Rx_90 = tr.rotation_matrix(math.pi / 4, [1, 0, 0]) # first, rotate 90 degrees around x axis
+        Ry_90 = tr.rotation_matrix(math.pi / 5, [0, 1, 0])  # second, 45 degrees around y axis of the current frame
+        Rz_90 = tr.rotation_matrix(math.pi / 6, [0, 0, 1])  # third, 30 degrees around z axis of the current frame
+
+        R1 = np.matmul(Rz_90, Ry_90)
+        R = np.matmul(R1, Rx_90)
+
+        euler_angles = tr.euler_from_matrix(R, 'sxyz')
+        euler_angles_expected = [math.pi / 4, math.pi / 5, math.pi / 6]
+
+        np.testing.assert_almost_equal(euler_angles, euler_angles_expected)
 
 if __name__ == '__main__':
     rosunit.unitrun('apriltags2_ros', 'test_rotation_utils', RotationUtils)

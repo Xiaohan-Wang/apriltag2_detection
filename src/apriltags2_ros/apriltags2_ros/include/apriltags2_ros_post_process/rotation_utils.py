@@ -3,7 +3,7 @@ import numpy as np
 import rospy
 import math
 
-TILT_ANGLE = 19 * math.pi / 180.0
+TILT_ANGLE = 18 * math.pi / 180.0
 
 
 def col(v):
@@ -17,24 +17,6 @@ def row(v):
     '''
     return np.expand_dims(v, axis=0)
 
-def quaternion_to_euler( x , y , z , w ):
-    q0 = w;
-    q1 = x;
-    q2 = y;
-    q3 = z;
-
-    rx = (atan2( 2 * (q2*q3 + q0*q1), (q0*q0 - q1*q1 - q2*q2 + q3*q3)));
-    ry = (asin( -2 * (q1*q3 - q0*q2)));
-    rz = (atan2( 2 * (q1*q2 + q0*q3), (q0*q0 + q1*q1 - q2*q2 - q3*q3)));
-
-    rx*=180.0/3.141592653589793;
-    ry*=180.0/3.141592653589793;
-    rz*=180.0/3.141592653589793;
-
-    print ("[QuaternionToEuler] quaternion w: {}\tx: {}\ty: {}\tz: {}\t".format(w,x,y,z))
-    print ("[QuaternionToEuler] rx: {}\try: {}\trz: {}\t".format(rx,ry,rz))
-
-    return (rx,ry,rz)
 
 def camztiltedTtag(q,t):
     '''
@@ -71,7 +53,7 @@ def inverse_homogeneous_transform(T):
 
     return T_inv
 
-def camztiltedTcamz(TILT_ANGLE):
+def camztiltedTcamz_BARIS(TILT_ANGLE):
     '''
     Returns homogeneous transformation that expresses a camz_p in camz frame.
     '''
@@ -80,6 +62,14 @@ def camztiltedTcamz(TILT_ANGLE):
     camztilted_T_camz = tr.rotation_matrix(TILT_ANGLE, [1,0,0])
     t = np.array([0, d*(1 - math.cos(TILT_ANGLE)), d*math.sin(TILT_ANGLE)])
     camztilted_T_camz[0:3,3] = t
+
+    return camztilted_T_camz
+
+def camztiltedTcamz(TILT_ANGLE):
+    '''
+    Returns homogeneous transformation that expresses a camz_p in camz frame.
+    '''
+    camztilted_T_camz = tr.rotation_matrix(TILT_ANGLE, [1,0,0])
 
     return camztilted_T_camz
 
@@ -123,12 +113,16 @@ def get_robot_pose(q_at,t_at):
 
     camztilted_T_tag = camztiltedTtag(q_at,t_at)
     camztilted_T_camz = camztiltedTcamz(TILT_ANGLE)
+    camz_T_camztilted = camzTcamztilted()
     camx_T_camz = camxTcamz()
     veh_T_camx = vehTcamx(tOvehOcamx)
 
+    #Z1 = np.matmul(camz_T_camztilted, camztilted_T_tag)
+    #Z2 = np.matmul(camztilted_T_camz, camztilted_T_tag)
+
     D1 = np.matmul(veh_T_camx,camx_T_camz)
-    # TODO: camztilted_T_camz mı lazım emin ol
-    D2 = np.matmul(D1, camztilted_T_camz)
+    #D2 = np.matmul(D1, camztilted_T_camz)
+    D2 = np.matmul(D1, camz_T_camztilted)
     veh_T_tag = np.matmul(D2,camztilted_T_tag)
 
     veh_R_tag = veh_T_tag[0:3, 0:3]
@@ -196,8 +190,15 @@ Resources:
 '''
 
 if __name__ == '__main__':
+    """
     q = [0.9585, 0.0263, -0.2431, -0.1467]
     t = [0.016, -0.041, 0.295]
+    """
+    q = [0.965, -0.0118, -0.255, 0.0607]
+    t = [-0.011, 0.07, 0.44]
 
     veh_R_tag, veh_t_tag = get_robot_pose(q, t)
+    euler_angles = tr.euler_from_matrix(veh_R_tag, 'rxyz')
+    euler_angles_np = np.asarray(euler_angles)
+    euler_angles_np *= 180/math.pi
     print "Selcuk"
