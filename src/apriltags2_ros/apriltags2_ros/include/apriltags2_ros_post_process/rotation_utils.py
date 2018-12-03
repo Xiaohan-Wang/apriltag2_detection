@@ -194,11 +194,11 @@ if __name__ == '__main__':
     q = [0.9585, 0.0263, -0.2431, -0.1467]
     t = [0.016, -0.041, 0.295]
     """
-    q = [0.965, -0.0118, -0.255, 0.0607]
+    q = [0.924, -0.082, 0.350, -0.130]
     t = [-0.011, 0.07, 0.44]
-
+    # Quaternions ix + jy + kz + w are represented as [x, y, z, w]
     veh_R_tag, veh_t_tag = get_robot_pose(q, t)
-    euler_angles = tr.euler_from_matrix(veh_R_tag, 'rxyz')
+    euler_angles = tr.euler_from_matrix(veh_R_tag, 'sxyz')
     euler_angles_np = np.asarray(euler_angles)
     euler_angles_np *= 180/math.pi
     print "Selcuk"

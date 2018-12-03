@@ -85,11 +85,14 @@ class RotationUtils(unittest.TestCase):
     def test_euler_XYZ_from_rotation_matrix(self):
         """
         r in 'rxyz' is 'r'otating frames indicating rotations are applied consecutively with respect to current
-        frames' axes i.e not "fixed-axis" rotation.
+        frames' axes, "relative-rotation". Order of rotations are first X, second Y and third Z. Rotation matrix
+        composition rule for relative rotations: Rx * Ry * Rz.
 
-        Rz * Ry * Rx -> "sxyz"
-        Rx * Ry * Rz -> "rxyz"
+        s in 'sxyz' is 's'tationary frames indicating rotations are applied with respect to the coordinate frame
+        of the INITIAL frame, "fixed-axis rotation". Rotation matrix composition rule for fixed-axis rotations:
+        Rz * Ry * Rx.
         """
+
         Rx_90 = tr.rotation_matrix(math.pi / 4, [1, 0, 0]) # first, rotate 90 degrees around x axis
         Ry_90 = tr.rotation_matrix(math.pi / 5, [0, 1, 0])  # second, 45 degrees around y axis of the current frame
         Rz_90 = tr.rotation_matrix(math.pi / 6, [0, 0, 1])  # third, 30 degrees around z axis of the current frame
