@@ -9,14 +9,17 @@ from os import makedirs
 
 from apriltags2_ros.msg import AprilTagDetectionArray
 from std_msgs.msg import String
+from ros_statistics_msgs.msg import NodeStatistics
 from math import atan2,asin
 
 class WorkSpaceParams(object):
+    host_name = None
     des_number_of_images = None
     recieved_images = 0 # topic /mete/tag_detections
     recieved_subprocess_time = 0 # topic /mete/subprocess_timings
     relative_pose = [] # relative pose of each detection
     subprocess_time_str = [] # the time of each subprocess of each detection
+    det_statistics = [] #topic /node_statistics
     single_result_folder_path = None
     summary_folder_path = None
     date = None
@@ -38,6 +41,7 @@ class WorkSpaceParams(object):
         self.summary_folder_path = path.join(self.parent_path, "test_result", "summary")
         if not path.isdir(self.summary_folder_path):
             makedirs(self.summary_folder_path)
+
 
 def QuaternionToEuler( x , y , z , w ):
     q0 = w;
@@ -69,6 +73,12 @@ def cbSubprocessTime(msg, ws_params):
         ws_params.recieved_subprocess_time += 1
         if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images and ws_params.recieved_images == ws_params.des_number_of_images):     
             outputToFile(ws_params)
+
+def cbDetStatistic(msg, ws_params):
+	if(msg.node == ws_params.host_name + 'apriltag2_detector_node'):
+		if(not(ws_params.recieved_subprocess_time == ws_params.des_number_of_images and ws_params.recieved_images == ws_params.des_number_of_images)):
+			ws_params.det_statistics.append(msg)
+
 
 
 def outputToFile(ws_params):
@@ -112,8 +122,26 @@ def outputToFile(ws_params):
         #print(single_result)   
         with open(single_result_file,'a') as f:
             yaml.dump(single_result,f,Dumper=yaml.RoundTripDumper)
-   
-    
+      
+    #cpu/ram
+    cpu_summary = {}
+    cpu_summary['node'] = ws_params.det_statistics[0].node
+    cpu_summary['samples'] = ws_params.det_statistics[0].samples
+    cpu_summary['cpu_load'] = {'mean':[], 'std':[], 'max':[]}
+    cpu_summary['virt_mem'] = {'mean':[], 'std':[], 'max':[]}
+    cpu_summary['real_mem'] = {'mean':[], 'std':[], 'max':[]}
+
+    for data in ws_params.det_statistics:
+        cpu_summary['cpu_load']['mean'].append(data.cpu_load_mean)
+        cpu_summary['cpu_load']['std'].append(data.cpu_load_std)
+        cpu_summary['cpu_load']['max'].append(data.cpu_load_max)
+        cpu_summary['virt_mem']['mean'].append(data.virt_mem_mean)
+        cpu_summary['virt_mem']['std'].append(data.virt_mem_std)
+        cpu_summary['virt_mem']['max'].append(data.virt_mem_max)
+        cpu_summary['real_mem']['mean'].append(data.real_mem_mean)
+        cpu_summary['real_mem']['std'].append(data.real_mem_std)
+        cpu_summary['real_mem']['max'].append(data.real_mem_max)
+
     #save summary result into ws_params.summary
     x,y,z = zip(*position)
     ox,oy,oz = zip(*orientation)
@@ -138,12 +166,15 @@ def outputToFile(ws_params):
         'ox':{'mean':float(np.mean(ox)),'min':min(ox),'max':max(ox),'range':max(ox)-min(ox),'variance':float(np.var(ox))},
         'oy':{'mean':float(np.mean(oy)),'min':min(oy),'max':max(oy),'range':max(oy)-min(oy),'variance':float(np.var(oy))},
         'oz':{'mean':float(np.mean(oz)),'min':min(oz),'max':max(oz),'range':max(oz)-min(oz),'variance':float(np.var(oz))},
-        'time consumption':time_consumption
+        'time consumption':time_consumption,
+        'cpu/ram':cpu_summary
     }
+
     summary_file = path.join(ws_params.summary_folder_path, ws_params.date + "_" + str(ws_params.decimate) + "_" + str(ws_params.des_number_of_images) + '.yaml')    
     with open(summary_file,'w') as f:
-        yaml.dump(summary,f,Dumper=yaml.RoundTripDumper)
+        yaml.dump(summary, f, Dumper=yaml.RoundTripDumper)
     rospy.signal_shutdown("work down!")
+
 
 
 if __name__ == '__main__':
@@ -153,11 +184,13 @@ if __name__ == '__main__':
     rospy.loginfo("[POST-PROCESSNG NODE] create analysis result folders at parent_path/test_result")
     ws_params = WorkSpaceParams()
     host_name = rospy.get_namespace() # /robot_name/package_name
-    #print package_ws
-
+    
+    ws_params.host_name = host_name 
     ws_params.des_number_of_images = rospy.get_param( host_name + "detection_post_processer_node/number_of_images")
     ws_params.decimate = rospy.get_param( host_name + "apriltag2_detector_node/decimate")
     
     sub_img = rospy.Subscriber("tag_detections", AprilTagDetectionArray, cbDetection, ws_params)
     sub_time = rospy.Subscriber("subprocess_timings", String, cbSubprocessTime, ws_params)
+    detection_statistics = rospy.Subscriber("/node_statistics", NodeStatistics, cbDetStatistic, ws_params)
+
     rospy.spin()
