@@ -54,7 +54,7 @@ def QuaternionToEuler( x , y , z , w ):
     rx*=180.0/3.141592653589793;
     ry*=180.0/3.141592653589793;
     rz*=180.0/3.141592653589793;
-    return (rx,ry,rz)
+    return (round(rx,5),round(ry,5),round(rz,5))
 
 def cbDetection(msg, ws_params):
     if(ws_params.recieved_images < ws_params.des_number_of_images and len(msg.detections)>0 ):
@@ -86,14 +86,14 @@ def outputToFile(ws_params):
     orientation = []
     subprocess_time = []
     subprocess_name = []
-    subprocess_number = 11 # if we add the step of relative pose estimation, it should be 12
+    subprocess_number = 12 # if we add the step of relative pose estimation, it should be 12
 
     #save every single result into .yaml file
     for num in range(0,ws_params.des_number_of_images):
         pos = ws_params.relative_pose[num].pose.pose.pose.position
         ori = ws_params.relative_pose[num].pose.pose.pose.orientation
         ori_degree=QuaternionToEuler(ori.x,ori.y,ori.z,ori.w)
-        position.append((pos.x,pos.y,pos.z))
+        position.append((round(pos.x,5),round(pos.y,5),round(pos.z,5)))
         orientation.append(ori_degree)
         
         subprocess_time_str =  ws_params.subprocess_time_str[num].data
@@ -101,7 +101,7 @@ def outputToFile(ws_params):
         sub_time = {}  
         subprocess_time.append([]) 
         for i in range(0, subprocess_number):
-                time = float(subprocess_time_str_split[3*i+2].split()[0])
+                time = round(float(subprocess_time_str_split[3*i+2].split()[0]),5)
                 subprocess_time[num].append(time)
                 if(num == 0):
                     name = subprocess_time_str_split[3*i+1].strip()
@@ -109,20 +109,44 @@ def outputToFile(ws_params):
                 sub_time[subprocess_name[i]]= time
         if (num == 0):
             subprocess_name.append('total time consumption')
-        sub_time[subprocess_name[-1]] = float(subprocess_time_str_split[-1].split()[0])
-        subprocess_time[num].append(float(subprocess_time_str_split[-1].split()[0]))
+        sub_time[subprocess_name[-1]] = round(float(subprocess_time_str_split[-1].split()[0]),5)
+        subprocess_time[num].append(sub_time[subprocess_name[-1]])
 
         single_result = {
             'count': num + 1,
-            'pos':{'x':pos.x,'y':pos.y,'z':pos.z},
+            'pos':{'x':position[num][0],'y':position[num][1],'z':position[num][2]},
             'ori':{'ox':ori_degree[0],'oy':ori_degree[1],'oz':ori_degree[2]},
             'subprocess_time':sub_time
         }
         single_result_file = path.join(ws_params.single_result_folder_path , ws_params.date + '_' + str(num + 1) + '.yaml')
-        #print(single_result)   
+
         with open(single_result_file,'a') as f:
             yaml.dump(single_result,f,Dumper=yaml.RoundTripDumper)
-      
+    
+    #save summary result into ws_params.summary
+    x,y,z = zip(*position)
+    ox,oy,oz = zip(*orientation)
+
+    apriltag_output = {
+        'x':{'mean':float('%0.5f' %np.mean(x)),'min':min(x),'max':max(x),'range':float('%0.5f' %(max(x)-min(x))),'variance':float('%0.5f' %np.var(x))},
+        'y':{'mean':float('%0.5f' %np.mean(y)),'min':min(y),'max':max(y),'range':float('%0.5f' %(max(y)-min(y))),'variance':float('%0.5f' %np.var(y))},
+        'z':{'mean':float('%0.5f' %np.mean(z)),'min':min(z),'max':max(z),'range':float('%0.5f' %(max(z)-min(z))),'variance':float('%0.5f' %np.var(z))},
+        'ox':{'mean':float('%0.5f' %np.mean(ox)),'min':min(ox),'max':max(ox),'range':float('%0.5f' %(max(ox)-min(ox))),'variance':float('%0.5f' %np.var(ox))},
+        'oy':{'mean':float('%0.5f' %np.mean(oy)),'min':min(oy),'max':max(oy),'range':float('%0.5f' %(max(oy)-min(oy))),'variance':float('%0.5f' %np.var(oy))},
+        'oz':{'mean':float('%0.5f' %np.mean(oz)),'min':min(oz),'max':max(oz),'range':float('%0.5f' %(max(oz)-min(oz))),'variance':float('%0.5f' %np.var(oz))},
+    }
+
+    subprocess_time_comsumption=zip(*subprocess_time)
+    time_consumption = {}
+    for i in range(0, subprocess_number + 1): # subprocesses + total time consumption
+        time_consumption[subprocess_name[i]] = {
+            'mean':float('%0.5f' %np.mean(subprocess_time_comsumption[i])),
+            'min':min(subprocess_time_comsumption[i]),
+            'max':max(subprocess_time_comsumption[i]),
+            'range':float('%0.5f' %(max(subprocess_time_comsumption[i])-min(subprocess_time_comsumption[i]))),
+            'variance':float('%0.5f' %np.var(subprocess_time_comsumption[i]))
+        }
+
     #cpu/ram
     cpu_summary = {}
     cpu_summary['node'] = ws_params.det_statistics[0].node
@@ -132,42 +156,22 @@ def outputToFile(ws_params):
     cpu_summary['real_mem'] = {'mean':[], 'std':[], 'max':[]}
 
     for data in ws_params.det_statistics:
-        cpu_summary['cpu_load']['mean'].append(data.cpu_load_mean)
-        cpu_summary['cpu_load']['std'].append(data.cpu_load_std)
-        cpu_summary['cpu_load']['max'].append(data.cpu_load_max)
-        cpu_summary['virt_mem']['mean'].append(data.virt_mem_mean)
-        cpu_summary['virt_mem']['std'].append(data.virt_mem_std)
-        cpu_summary['virt_mem']['max'].append(data.virt_mem_max)
-        cpu_summary['real_mem']['mean'].append(data.real_mem_mean)
-        cpu_summary['real_mem']['std'].append(data.real_mem_std)
-        cpu_summary['real_mem']['max'].append(data.real_mem_max)
-
-    #save summary result into ws_params.summary
-    x,y,z = zip(*position)
-    ox,oy,oz = zip(*orientation)
-    subprocess_time_comsumption=zip(*subprocess_time)
-
-    time_consumption = {}
-    for i in range(0, subprocess_number + 1): # subprocesses + total time consumption
-        time_consumption[subprocess_name[i]] = {
-            'mean':float(np.mean(subprocess_time_comsumption[i])),
-            'min':min(subprocess_time_comsumption[i]),
-            'max':max(subprocess_time_comsumption[i]),
-            'range':max(subprocess_time_comsumption[i])-min(subprocess_time_comsumption[i]),
-            'variance':float(np.var(subprocess_time_comsumption[i]))
-        }
+        cpu_summary['cpu_load']['mean'].append(round(data.cpu_load_mean/1000000,5))
+        cpu_summary['cpu_load']['std'].append(round(data.cpu_load_std/1000000,5))
+        cpu_summary['cpu_load']['max'].append(round(data.cpu_load_max/1000000,5))
+        cpu_summary['virt_mem']['mean'].append(round(data.virt_mem_mean/1000000,5))
+        cpu_summary['virt_mem']['std'].append(round(data.virt_mem_std/1000000,5))
+        cpu_summary['virt_mem']['max'].append(round(data.virt_mem_max/1000000))
+        cpu_summary['real_mem']['mean'].append(round(data.real_mem_mean/1000000,5))
+        cpu_summary['real_mem']['std'].append(round(data.real_mem_std/1000000,5))
+        cpu_summary['real_mem']['max'].append(round(data.real_mem_max/1000000,5))
 
     summary = {
         'decimate':ws_params.decimate,
-        'total':ws_params.des_number_of_images,
-        'x':{'mean':float(np.mean(x)),'min':min(x),'max':max(x),'range':max(x)-min(x),'variance':float(np.var(x))},
-        'y':{'mean':float(np.mean(y)),'min':min(y),'max':max(y),'range':max(y)-min(y),'variance':float(np.var(y))},
-        'z':{'mean':float(np.mean(z)),'min':min(z),'max':max(z),'range':max(z)-min(z),'variance':float(np.var(z))},
-        'ox':{'mean':float(np.mean(ox)),'min':min(ox),'max':max(ox),'range':max(ox)-min(ox),'variance':float(np.var(ox))},
-        'oy':{'mean':float(np.mean(oy)),'min':min(oy),'max':max(oy),'range':max(oy)-min(oy),'variance':float(np.var(oy))},
-        'oz':{'mean':float(np.mean(oz)),'min':min(oz),'max':max(oz),'range':max(oz)-min(oz),'variance':float(np.var(oz))},
+        'total number of images':ws_params.des_number_of_images,
+        'apriltag_output':apriltag_output,
         'time consumption':time_consumption,
-        'cpu/ram':cpu_summary
+        'cpu/ram (MB)':cpu_summary
     }
 
     summary_file = path.join(ws_params.summary_folder_path, ws_params.date + "_" + str(ws_params.decimate) + "_" + str(ws_params.des_number_of_images) + '.yaml')    

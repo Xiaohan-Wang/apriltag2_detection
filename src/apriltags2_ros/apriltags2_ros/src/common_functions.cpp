@@ -352,6 +352,7 @@ AprilTagDetectionArray TagDetector::detectTags (
 
   end = clock();
   cost = (double)(end - begin)/CLOCKS_PER_SEC; // seconds
+  timeprofile_stamp(td_->tp, "relative pose estimation");
 
   //output the time cost of each step
   // timeprofile_display(td_->tp);
