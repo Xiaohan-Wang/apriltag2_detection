@@ -5,14 +5,10 @@ import datetime
 from ruamel import yaml
 from os import path
 from os import makedirs
-import tf.transformations as tr
-
 from apriltags2_ros.msg import AprilTagDetectionArray
+from apriltags2_ros_post_process.rotation_utils import *
+from apriltags2_ros_post_process.data_adapter_utils import *
 
-from apriltags2_ros.rotation_utils import QuaternionToEuler
-
-
-from math import atan2,asin
 
 class WorkSpaceParams(object):
     des_number_of_images = None
@@ -53,31 +49,27 @@ def cbDetection(msg, ws_params):
     date = ws_params.date
 
     if(ws_params.recieved_images < ws_params.des_number_of_images and len(msg.detections)>0 ):
-        pos = msg.detections[0].pose.pose.pose.position
-        ori = msg.detections[0].pose.pose.pose.orientation
+        # unpack the position and orientation returned by apriltags2 ros
+        t = msg.detections[0].pose.pose.pose.position
+        q = msg.detections[0].pose.pose.pose.orientation
+        t, q = data_adapter(t, q)  # change data type to numpy to fit to the rotation.utils fns
 
-        #tag_T_camz = toHomegenousTransformation(ori,pos)
-        T_camz = TagDetection2HomegenousTransformation(ori,pos)
-        camz_T_camztilt = Camz2CamzTilt()
-        #T_camx = from_T_to(T_camz, camz_T_camx)
-        #T_camz =from_T_to(tag_R_camx, tag_t_camx)
-        #T_robot =from_T_to(tag_R_camx, tag_t_camx)
-        #ori_degree=QuaternionToEuler(ori.x,ori.y,ori.z,ori.w)
+        veh_R_world, veh_t_world = robot_pose_in_word_frame(q,t)
+        veh_feaXYZ_world = rotation_matrix_to_euler(veh_R_world)
 
-        ws_params.position.append((pos.x,pos.y,pos.z))
-        #orientation.append(QuaternionToEuler(ori.x,ori.y,ori.z,ori.w))
-        ws_params.orientation.append(ori_degree)
+        ws_params.position.append((t[0], t[1], t[2]))
+        ws_params.orientation.append((veh_feaXYZ_world[0], veh_feaXYZ_world[1], veh_feaXYZ_world[2]))
 
         #save every single result into .yaml file
-        single_result={
-            'count':ws_params.recieved_images,
-            'pos':{'x':pos.x,'y':pos.y,'z':pos.z},
-            'ori':{'ox':ori_degree[0],'oy':ori_degree[1],'oz':ori_degree[2]}
+        single_result = {
+            'count': ws_params.recieved_images,
+            'pos': {'x':t[0], 'y':t[1], 'z':t[2]},
+            'ori': {'ox': veh_feaXYZ_world[0], 'oy':veh_feaXYZ_world[1], 'oz':veh_feaXYZ_world[2]}
         }
 
         single_result_file = path.join(ws_params.parent_path, "test_result", "single_result", date + '_' + str(ws_params.recieved_images + 1) + '.yaml')
         with open(single_result_file,'a') as f:
-            yaml.dump(single_result,f,Dumper=yaml.RoundTripDumper)
+            yaml.dump(single_result,f , Dumper=yaml.RoundTripDumper)
 
         print("[POST-PROCESSNG NODE] recorded scene number {} ".format(str(ws_params.recieved_images + 1)))
         ws_params.recieved_images += 1

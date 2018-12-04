@@ -5,14 +5,6 @@ import math
 TILT_ANGLE = 18 * math.pi / 180.0
 
 
-def col(v):
-    """ Convert a numpy singleton into a column array """
-    return np.expand_dims(v, axis=1)
-def row(v):
-    """ Convert a numpy singleton into a row array """
-    return np.expand_dims(v, axis=0)
-
-
 def camztiltedTtag(q,t):
     """
     Expresesses the apriltag2_ros output (message includes a quaterion and a translation vector)
@@ -129,6 +121,24 @@ def robot_pose_in_word_frame(q_at,t_at):
 
     return veh_R_world, veh_t_world
 
+def rotation_matrix_to_euler(veh_R_world):
+    """
+    expresses the apriltags2_ros output in robot cf.
+
+    Args:
+        q_at (numpy.array): quaternion representing relative orientation of camera frame with respect to tag frame.
+        t_at (numpy.array): translation vector from cameras cf to tags cf expressed in camera cf.
+
+    Returns:
+        veh_R_world (numpy.array): rotation matrix orientation that expresses world_p in robot cf.
+        veh_t_world (numpy.array): translation vector from robots cf to apriltag's cf expressed in robot cf.
+    """
+    euler_angles_w = tr.euler_from_matrix(veh_R_world, 'sxyz')
+    euler_angles_w_np = np.asarray(euler_angles_w)
+    euler_angles_w_np *= 180/math.pi
+
+    return euler_angles_w_np
+
 '''
 [NOMENCLATURE]
 
@@ -177,9 +187,6 @@ if __name__ == '__main__':
 
     # Quaternions ix + jy + kz + w are represented as [x, y, z, w]
     veh_R_world, veh_t_world = robot_pose_in_word_frame(q, t)
-
-    euler_angles_w = tr.euler_from_matrix(veh_R_world, 'sxyz')
-    euler_angles_w_np = np.asarray(euler_angles_w)
-    euler_angles_w_np *= 180/math.pi
+    veh_feaXYZ_world= rotation_matrix_to_euler(veh_R_world) # feaXYZ f for fixed ea for euler angles XYZ is self exp.
 
     print "Selcuk"
