@@ -121,5 +121,5 @@ target_link_libraries(${PROJECT_NAME}_single_image_client_node
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
   add_rostest(tests/test_rotation_utils.test)
-  add_rostest(tests/test_data_adapter_utils.test)
+  #add_rostest(tests/test_data_adapter_utils.test)
 endif()

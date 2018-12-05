@@ -50,20 +50,27 @@ def cbDetection(msg, ws_params):
 
     if(ws_params.recieved_images < ws_params.des_number_of_images and len(msg.detections)>0 ):
         # unpack the position and orientation returned by apriltags2 ros
-        t = msg.detections[0].pose.pose.pose.position
-        q = msg.detections[0].pose.pose.pose.orientation
-        t, q = data_adapter(t, q)  # change data type to numpy to fit to the rotation.utils fns
+        t_msg = msg.detections[0].pose.pose.pose.position
+        q_msg = msg.detections[0].pose.pose.pose.orientation
+
+        t = np.array([t_msg.x, t_msg.y, t_msg.z])
+        q = np.array([q_msg.x, q_msg.y, q_msg.z, q_msg.w])
 
         veh_R_world, veh_t_world = robot_pose_in_word_frame(q,t)
         veh_feaXYZ_world = rotation_matrix_to_euler(veh_R_world)
 
-        ws_params.position.append((t[0], t[1], t[2]))
+        veh_t_world = veh_t_world.tolist()
+        veh_feaXYZ_world = veh_feaXYZ_world.tolist()
+
+        print ws_params.recieved_images
+
+        ws_params.position.append((veh_t_world[0], veh_t_world[1], veh_t_world[2]))
         ws_params.orientation.append((veh_feaXYZ_world[0], veh_feaXYZ_world[1], veh_feaXYZ_world[2]))
 
         #save every single result into .yaml file
         single_result = {
             'count': ws_params.recieved_images,
-            'pos': {'x':t[0], 'y':t[1], 'z':t[2]},
+            'pos': {'x':veh_t_world[0], 'y':veh_t_world[1], 'z':veh_t_world[2]},
             'ori': {'ox': veh_feaXYZ_world[0], 'oy':veh_feaXYZ_world[1], 'oz':veh_feaXYZ_world[2]}
         }
 

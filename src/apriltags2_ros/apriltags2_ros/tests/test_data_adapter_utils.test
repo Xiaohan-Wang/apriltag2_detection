@@ -1,0 +1,3 @@
+<launch>
+  <test test-name="data_adapter_utils" pkg="apriltags2_ros" type="test_data_adapter_utils.py" />
+</launch>
