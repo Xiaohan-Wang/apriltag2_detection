@@ -6,9 +6,8 @@ from ruamel import yaml
 from os import path
 from os import makedirs
 from apriltags2_ros.msg import AprilTagDetectionArray
+from apriltags2_ros.msg import VehiclePoseEuler
 from apriltags2_ros_post_process.rotation_utils import *
-from apriltags2_ros_post_process.data_adapter_utils import *
-
 
 class WorkSpaceParams(object):
     des_number_of_images = None
@@ -62,7 +61,7 @@ def cbDetection(msg, ws_params):
         veh_t_world = veh_t_world.tolist()
         veh_feaXYZ_world = veh_feaXYZ_world.tolist()
 
-        print ws_params.recieved_images
+        #print ws_params.recieved_images
 
         ws_params.position.append((veh_t_world[0], veh_t_world[1], veh_t_world[2]))
         ws_params.orientation.append((veh_feaXYZ_world[0], veh_feaXYZ_world[1], veh_feaXYZ_world[2]))
