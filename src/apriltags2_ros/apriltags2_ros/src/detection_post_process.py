@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 import rospy
-import cv2
 import numpy as np
 import datetime
 from ruamel import yaml
 from os import path
 from os import makedirs
-
 from apriltags2_ros.msg import AprilTagDetectionArray
 from std_msgs.msg import String
 from ros_statistics_msgs.msg import NodeStatistics
 from math import atan2,asin
+from apriltags2_ros.msg import VehiclePoseEuler
+from apriltags2_ros_post_process.rotation_utils import *
 
 class WorkSpaceParams(object):
     host_name = None
@@ -25,6 +25,15 @@ class WorkSpaceParams(object):
     date = None
     decimate = None
 
+    """
+    self.camera_x     = self.setupParam("~camera_x", 0.065)
+    self.camera_y     = self.setupParam("~camera_y", 0.0)
+    self.camera_z     = self.setupParam("~camera_z", 0.11)
+    self.camera_theta = self.setupParam("~camera_theta", 19.0)
+    self.scale_x     = self.setupParam("~scale_x", 1)
+    self.scale_y     = self.setupParam("~scale_y", 1)
+    self.scale_z = self.setupParam("~scale_z", 1)
+    """
     def __init__(self):
         self.prepareWorkSpace()
 
@@ -41,20 +50,6 @@ class WorkSpaceParams(object):
         self.summary_folder_path = path.join(self.parent_path, "test_result", "summary")
         if not path.isdir(self.summary_folder_path):
             makedirs(self.summary_folder_path)
-
-
-def QuaternionToEuler( x , y , z , w ):
-    q0 = w;
-    q1 = x;
-    q2 = y;
-    q3 = z;
-    rx = (atan2( 2 * (q2*q3 + q0*q1), (q0*q0 - q1*q1 - q2*q2 + q3*q3)));
-    ry = (asin( -2 * (q1*q3 - q0*q2)));
-    rz = (atan2( 2 * (q1*q2 + q0*q3), (q0*q0 + q1*q1 - q2*q2 - q3*q3)));
-    rx*=180.0/3.141592653589793;
-    ry*=180.0/3.141592653589793;
-    rz*=180.0/3.141592653589793;
-    return (round(rx,5),round(ry,5),round(rz,5))
 
 def cbDetection(msg, ws_params):
     if(ws_params.recieved_images < ws_params.des_number_of_images and len(msg.detections)>0 ):
@@ -90,11 +85,24 @@ def outputToFile(ws_params):
 
     #save every single result into .yaml file
     for num in range(0,ws_params.des_number_of_images):
-        pos = ws_params.relative_pose[num].pose.pose.pose.position
-        ori = ws_params.relative_pose[num].pose.pose.pose.orientation
-        ori_degree=QuaternionToEuler(ori.x,ori.y,ori.z,ori.w)
-        position.append((round(pos.x,5),round(pos.y,5),round(pos.z,5)))
-        orientation.append(ori_degree)
+        # unpack the position and orientation returned by apriltags2 ros
+        t_msg = ws_params.relative_pose[num].pose.pose.pose.position
+        q_msg = ws_params.relative_pose[num].pose.pose.pose.orientation
+        
+        t = np.array([t_msg.x, t_msg.y, t_msg.z])
+        q = np.array([q_msg.x, q_msg.y, q_msg.z, q_msg.w])
+
+        veh_R_world, veh_t_world = robot_pose_in_word_frame(q,t)
+        veh_feaXYZ_world = rotation_matrix_to_euler(veh_R_world)
+
+        veh_t_world = veh_t_world.tolist()
+        veh_feaXYZ_world = veh_feaXYZ_world.tolist()
+
+        position.append((round(veh_t_world[0],5), round(veh_t_world[1],5), round(veh_t_world[2],5)))
+        orientation.append((round(veh_feaXYZ_world[0],5), round(veh_feaXYZ_world[1],5), round(veh_feaXYZ_world[2],5)))
+
+
+
         
         subprocess_time_str =  ws_params.subprocess_time_str[num].data
         subprocess_time_str_split = filter(None, subprocess_time_str.split('  '))
@@ -115,7 +123,7 @@ def outputToFile(ws_params):
         single_result = {
             'count': num + 1,
             'pos':{'x':position[num][0],'y':position[num][1],'z':position[num][2]},
-            'ori':{'ox':ori_degree[0],'oy':ori_degree[1],'oz':ori_degree[2]},
+            'ori':{'ox':orientation[num][0],'oy':orientation[num][1],'oz':orientation[num][2]},
             'subprocess_time':sub_time
         }
         single_result_file = path.join(ws_params.single_result_folder_path , ws_params.date + '_' + str(num + 1) + '.yaml')

@@ -1,0 +1,3 @@
+<launch>
+  <test test-name="rotation_utils" pkg="apriltags2_ros" type="test_rotation_utils.py" />
+</launch>
