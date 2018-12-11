@@ -1,0 +1,35 @@
+作者：Jerry Jho
+链接：https://www.zhihu.com/question/23003213/answer/56121859
+来源：知乎
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+
+#include <Python.h>
+
+int great_function(int a) {
+    return a + 1;
+}
+
+static PyObject * _great_function(PyObject *self, PyObject *args)
+{
+    int _a;
+    int res;
+
+    if (!PyArg_ParseTuple(args, "i", &_a))
+        return NULL;
+    res = great_function(_a);
+    return PyLong_FromLong(res);
+}
+
+static PyMethodDef GreateModuleMethods[] = {
+    {
+        "great_function",
+        _great_function,
+        METH_VARARGS,
+        ""
+    },
+    {NULL, NULL, 0, NULL}
+};
+
+PyMODINIT_FUNC initgreat_module(void) {
+    (void) Py_InitModule("great_module", GreateModuleMethods);
+}

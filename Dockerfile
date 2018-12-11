@@ -1,6 +1,6 @@
 #FROM duckietown/rpi-duckiebot-base:master18
-FROM selcukercan/frpi-base:v3
-LABEL maintainer="Selcuk Ercan ercans@ethz.ch"
+FROM xiaohan18/base:1.0
+LABEL maintainer="xiaohanWang_2015@163.com"
 
 # REQUIRED ENVIRONMENT VARIABLES THAT HAVE TO BE PASSED WHEN RUNNING THE CONTAINER:
 # ROS_MASTER_URI - the hostname and port of the roscore master, typically http://hostname:11311 - ALWAYS REQUIRED!
@@ -14,7 +14,6 @@ COPY /src /custom_ws/src
 COPY .gitignore /custom_ws
 COPY .catkin_workspace /custom_ws
 COPY node_launch.sh /custom_ws
-
 
 ENV ROS_HOSTNAME localhost
 

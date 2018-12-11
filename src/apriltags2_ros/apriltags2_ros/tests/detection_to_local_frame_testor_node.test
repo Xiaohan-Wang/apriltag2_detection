@@ -1,0 +1,30 @@
+<launch>
+    <arg name="pkg_name" value="apriltags2_ros"/>
+    <arg name="node_name" default="detection_to_local_frame_testor_node"/>
+
+    <arg name="veh" default="testbot" doc="Name of vehicle. ex: megaman"/>
+    <arg name="path" default="$(find apriltags2_ros)/tests/test_images" />
+    <arg name="am_p" default="10" />
+    <arg name="am_r" default="10" />
+
+
+    <!-- Run the node -->
+    <include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+    </include>
+    
+    <!--detection_to_local_frame Node-->
+	<include file="$(find apriltags2_ros)/launch/detection_to_local_frame.launch">
+		<arg name="veh" value="$(arg veh)"/>
+	</include>
+
+    <!-- Run unit test -->
+    <remap from="/image_rect" to="/testbot/camera_node/image/rect" />
+    <remap from="/rect_camera_info" to="/testbot/camera_node/image/camera_info" />
+    <remap from="/detection_to_local_frame" to="/testbot/apriltags2_ros/publish_detections_in_local_frame/tag_detections_local_frame" />
+    <test test-name="detection_to_local_frame_testor_node" pkg="apriltags2_ros" type="detection_to_local_frame_testor_node.py" ns="$(arg veh)">
+        <param name="path" value="$(arg path)" />
+        <param name="am_p" value="$(arg am_p)" />
+        <param name="am_r" value="$(arg am_r)" />
+    </test>
+</launch>
