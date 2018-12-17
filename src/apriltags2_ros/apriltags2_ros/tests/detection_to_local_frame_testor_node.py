@@ -8,6 +8,7 @@ import cv2
 from tf import transformations as tr
 import numpy as np
 from apriltags2_ros.msg import VehiclePoseEuler
+import os
 
 
 class DetectionToLocalFrameTestorNode(unittest.TestCase):
@@ -15,7 +16,7 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
         # Setup the node
         rospy.init_node('detection_to_local_frame_testor_node', anonymous=False)
         self.msg_received = 0
-        self.msg_tags = []
+        self.vehicle_pose_euler = []
         #allowed_mismatch for postion : am_p
         #allowed_mismatch for rotation : am_r
         self.am_p = rospy.get_param("/testbot/detection_to_local_frame_testor_node/am_p")
@@ -32,8 +33,8 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
                 self.sub_tag.get_num_connections() < 1) and not rospy.is_shutdown() and rospy.Time.now() < timeout:
             rospy.sleep(0.1)
 
-    def tagCallback(msg, self):
-        self.msg_tags = VehiclePoseEuler.append(msg)
+    def tagCallback(self, msg):
+        self.vehicle_pose_euler.append(msg)
         self.msg_received += 1
 
     def test_publisher_and_subscriber(self):
@@ -46,36 +47,41 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
         path = rospy.get_param("/testbot/detection_to_local_frame_testor_node/path")
         self.setup()    # Setup the node
         
-        # Publish the camera info
-        msg_info = CameraInfo()
-        msg_info.height = 480
-        msg_info.width = 640
-        msg_info.K = [331.026328, 0.0, 319.035097, 0.0, 335.330339, 216.450133, 0.0, 0.0, 1.0]
-        self.pub_info.publish(msg_info)
+        total_test_num = 0
+        for filename in os.listdir(path):
+            ab_path = path + '/' + filename
+            if(not os.path.isfile(ab_path)):
+                continue
+            total_test_num += 1
+            groundtruth = float(filename.split('.')[0])
+
+            # Publish the camera info
+            msg_info = CameraInfo()
+            msg_info.height = 792
+            msg_info.width = 1056
+            msg_info.K = [331.026328, 0.0, 319.035097, 0.0, 335.330339, 216.450133, 0.0, 0.0, 1.0]
+            self.pub_info.publish(msg_info)
         
-        for num in range(0,1):
-            filename = path + '/' + str((num-3)*10) + '.png'
             # Publish the test image
-            img = cv2.imread(filename)
+            img = cv2.imread(ab_path)
             cvb = CvBridge()
             msg_rect = cvb.cv2_to_imgmsg(img, encoding="bgr8")
             self.pub_rect.publish(msg_rect)
 
             # Wait for the message to be received
             timeout = rospy.Time.now() + rospy.Duration(5) # Wait at most 5 seconds for the node to reply
-            while self.msg_received < num+1 and not rospy.is_shutdown() and rospy.Time.now() < timeout:
-                print(self.msg_received)
+            while self.msg_received < total_test_num and not rospy.is_shutdown() and rospy.Time.now() < timeout:
                 rospy.sleep(0.1)
             self.assertLess(rospy.Time.now(), timeout, "Waiting for apriltag detection timed out.")
 
 
-            self.assertAlmostEqual(self.msg_tags[num].posx, 0.0, delta = self.am_p) 
-            self.assertAlmostEqual(self.msg_tags[num].posy, 0.0, delta = self.am_p)
-            self.assertAlmostEqual(self.msg_tags[num].posz, 0.3, delta = self.am_p)
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posx, 0.2, delta = self.am_p) 
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posy, 0, delta = self.am_p)
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posz, 0, delta = self.am_p)
             
-            self.assertAlmostEqual(self.msg_tags[num].rotx, 0, delta = self.am_r)
-            self.assertAlmostEqual(self.msg_tags[num].roty, (num-3)*10, delta = self.am_r)
-            self.assertAlmostEqual(self.msg_tags[num].rotz, 0, delta = self.am_r)
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].rotx, 0, delta = self.am_r)
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].roty, 0, delta = self.am_r)
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].rotz, groundtruth, delta = self.am_r)
 
                 
 if __name__ == '__main__':
