@@ -17,8 +17,13 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
         rospy.init_node('detection_to_local_frame_testor_node', anonymous=False)
         self.msg_received = 0
         self.vehicle_pose_euler = []
+
         #allowed_mismatch for postion : am_p
         #allowed_mismatch for rotation : am_r
+
+        #testbot is default duckitbot name in this test, actually we don't need to input 
+        #the name of duckiebot because we are using static images
+        #TO DO：change absolute path into relative path?
         self.am_p = rospy.get_param("/testbot/detection_to_local_frame_testor_node/am_p")
         self.am_r = rospy.get_param("/testbot/detection_to_local_frame_testor_node/am_r")
 
@@ -38,12 +43,21 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
         self.msg_received += 1
 
     def test_publisher_and_subscriber(self):
+        '''
+        test whether those topic are published or subscribed by corresponding nodes
+        i.e. whether the name of those topics are correct
+        '''
         self.setup()    # Setup the node
         self.assertGreaterEqual(self.pub_rect.get_num_connections(), 1, "No connections found on image_rect topic")
         self.assertGreaterEqual(self.pub_info.get_num_connections(), 1, "No connections found on rect_camera_info topic")
         self.assertGreaterEqual(self.sub_tag.get_num_connections(), 1, "No connections found on tag_detections topic")
     
     def test_with_known_image(self):
+        '''
+        test whether 'publish_detections_in_local_frame' node publishes correct relative pose
+        test folder is set to /tests/test_images by default, but it can also be appointed when starting this test node
+        all images in the test folder are used 
+        '''
         path = rospy.get_param("/testbot/detection_to_local_frame_testor_node/path")
         self.setup()    # Setup the node
         
@@ -74,7 +88,7 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
                 rospy.sleep(0.1)
             self.assertLess(rospy.Time.now(), timeout, "Waiting for apriltag detection timed out.")
 
-
+            # The second parameter is groundtruth, and the third one is allowed mismatch
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].posx, 0.2, delta = self.am_p) 
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].posy, 0, delta = self.am_p)
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].posz, 0, delta = self.am_p)
@@ -83,6 +97,8 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].roty, 0, delta = self.am_r)
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].rotz, groundtruth, delta = self.am_r)
 
+#[RESOURCE]
+#https://github.com/duckietown/Software/blob/master18/catkin_ws/src/20-indefinite-navigation/apriltags_ros/apriltags_ros/tests/apriltags_tester_node.py
                 
 if __name__ == '__main__':
     rostest.rosrun('apriltags2_ros', 'detection_to_local_frame_testor_node', DetectionToLocalFrameTestorNode)
