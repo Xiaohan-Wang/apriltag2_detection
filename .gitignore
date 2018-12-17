@@ -7,6 +7,7 @@ cmake-build-debug/
 .idea/
 logs/
 cmake-build-debug/
+src/apriltags2_ros/apriltags2_ros/2018-12-09-03-36-57.bag
 .idea/
 .catkin_tools/
 src/apriltags2_ros/apriltags2_ros/test_result/
