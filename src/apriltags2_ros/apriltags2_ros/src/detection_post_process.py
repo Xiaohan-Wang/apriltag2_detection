@@ -133,7 +133,7 @@ def outputToFile(ws_params):
         subprocess_time[num].append(sub_time[subprocess_name[-1]])
 
         single_result = {
-            'count': num + 1,
+            'image ID': num + 1,
             'pos_local_frame (m)':{'x':position_l[num][0],'y':position_l[num][1],'z':position_l[num][2]},
             'ori_local_frame (degree)':{'ox':orientation_l[num][0],'oy':orientation_l[num][1],'oz':orientation_l[num][2]},
             'pose (m)':{'x':position[num][0],'y':position[num][1],'z':position[num][2]},
@@ -150,12 +150,12 @@ def outputToFile(ws_params):
     ox,oy,oz = zip(*orientation_l)
 
     apriltag_output = {
-        'x':{'mean':float('%0.5f' %np.mean(x)),'min':min(x),'max':max(x),'range':float('%0.5f' %(max(x)-min(x))),'variance':float('%0.5f' %np.var(x))},
-        'y':{'mean':float('%0.5f' %np.mean(y)),'min':min(y),'max':max(y),'range':float('%0.5f' %(max(y)-min(y))),'variance':float('%0.5f' %np.var(y))},
-        'z':{'mean':float('%0.5f' %np.mean(z)),'min':min(z),'max':max(z),'range':float('%0.5f' %(max(z)-min(z))),'variance':float('%0.5f' %np.var(z))},
-        'ox':{'mean':float('%0.5f' %np.mean(ox)),'min':min(ox),'max':max(ox),'range':float('%0.5f' %(max(ox)-min(ox))),'variance':float('%0.5f' %np.var(ox))},
-        'oy':{'mean':float('%0.5f' %np.mean(oy)),'min':min(oy),'max':max(oy),'range':float('%0.5f' %(max(oy)-min(oy))),'variance':float('%0.5f' %np.var(oy))},
-        'oz':{'mean':float('%0.5f' %np.mean(oz)),'min':min(oz),'max':max(oz),'range':float('%0.5f' %(max(oz)-min(oz))),'variance':float('%0.5f' %np.var(oz))},
+        'x (m)':{'mean':float('%0.5f' %np.mean(x)),'min':min(x),'max':max(x),'range':float('%0.5f' %(max(x)-min(x))),'variance':float('%0.5f' %np.var(x))},
+        'y (m)':{'mean':float('%0.5f' %np.mean(y)),'min':min(y),'max':max(y),'range':float('%0.5f' %(max(y)-min(y))),'variance':float('%0.5f' %np.var(y))},
+        'z (m)':{'mean':float('%0.5f' %np.mean(z)),'min':min(z),'max':max(z),'range':float('%0.5f' %(max(z)-min(z))),'variance':float('%0.5f' %np.var(z))},
+        'ox (degree)':{'mean':float('%0.5f' %np.mean(ox)),'min':min(ox),'max':max(ox),'range':float('%0.5f' %(max(ox)-min(ox))),'variance':float('%0.5f' %np.var(ox))},
+        'oy (degree)':{'mean':float('%0.5f' %np.mean(oy)),'min':min(oy),'max':max(oy),'range':float('%0.5f' %(max(oy)-min(oy))),'variance':float('%0.5f' %np.var(oy))},
+        'oz (degree)':{'mean':float('%0.5f' %np.mean(oz)),'min':min(oz),'max':max(oz),'range':float('%0.5f' %(max(oz)-min(oz))),'variance':float('%0.5f' %np.var(oz))},
     }
 
     subprocess_time_comsumption=zip(*subprocess_time)
@@ -192,7 +192,7 @@ def outputToFile(ws_params):
         'decimate':ws_params.decimate,
         'total number of images':ws_params.des_number_of_images,
         'apriltag_output':apriltag_output,
-        'time consumption':time_consumption,
+        'time consumption (ms)':time_consumption,
         'cpu/ram (MB)':cpu_summary
     }
 
