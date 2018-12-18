@@ -23,7 +23,7 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
 
         #testbot is default duckitbot name in this test, actually we don't need to input 
         #the name of duckiebot because we are using static images
-        #TO DO：change absolute path into relative path?
+        #TO DO:change absolute path into relative path?
         self.am_p = rospy.get_param("/testbot/detection_to_local_frame_testor_node/am_p")
         self.am_r = rospy.get_param("/testbot/detection_to_local_frame_testor_node/am_r")
 
@@ -68,6 +68,7 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
                 continue
             total_test_num += 1
             groundtruth = float(filename.split('.')[0])
+            rospy.loginfo("we are testing image %d : %d degree", total_test_num, groundtruth)
 
             # Publish the camera info
             msg_info = CameraInfo()
@@ -75,18 +76,25 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
             msg_info.width = 1056
             msg_info.K = [331.026328, 0.0, 319.035097, 0.0, 335.330339, 216.450133, 0.0, 0.0, 1.0]
             self.pub_info.publish(msg_info)
-        
+            rospy.loginfo("Publish the camera info")
+
             # Publish the test image
             img = cv2.imread(ab_path)
             cvb = CvBridge()
             msg_rect = cvb.cv2_to_imgmsg(img, encoding="bgr8")
             self.pub_rect.publish(msg_rect)
+            rospy.loginfo("Publish the test image")
 
             # Wait for the message to be received
             timeout = rospy.Time.now() + rospy.Duration(5) # Wait at most 5 seconds for the node to reply
             while self.msg_received < total_test_num and not rospy.is_shutdown() and rospy.Time.now() < timeout:
                 rospy.sleep(0.1)
             self.assertLess(rospy.Time.now(), timeout, "Waiting for apriltag detection timed out.")
+            
+            rospy.loginfo("posx: %f, posy: %f, posz: %f, rotx: %f, roty: %f, rotz: %f",
+                self.vehicle_pose_euler[-1].posx, self.vehicle_pose_euler[-1].posy,
+                self.vehicle_pose_euler[-1].posz, self.vehicle_pose_euler[-1].rotx,
+                self.vehicle_pose_euler[-1].roty, self.vehicle_pose_euler[-1].rotz)
 
             # The second parameter is groundtruth, and the third one is allowed mismatch
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].posx, 0.2, delta = self.am_p) 
@@ -94,8 +102,8 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].posz, 0, delta = self.am_p)
             
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].rotx, 0, delta = self.am_r)
-            self.assertAlmostEqual(self.vehicle_pose_euler[-1].roty, 0, delta = self.am_r)
-            self.assertAlmostEqual(self.vehicle_pose_euler[-1].rotz, groundtruth, delta = self.am_r)
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].roty, groundtruth, delta = self.am_r)
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].rotz, 0, delta = self.am_r)
 
 #[RESOURCE]
 #https://github.com/duckietown/Software/blob/master18/catkin_ws/src/20-indefinite-navigation/apriltags_ros/apriltags_ros/tests/apriltags_tester_node.py
