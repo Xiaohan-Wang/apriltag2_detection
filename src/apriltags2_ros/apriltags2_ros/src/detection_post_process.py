@@ -51,14 +51,21 @@ class WorkSpaceParams(object):
         if not path.isdir(self.summary_folder_path):
             makedirs(self.summary_folder_path)
 
-def cbDetection(msg, ws_params):
-    if(ws_params.recieved_images < ws_params.des_number_of_images and len(msg.detections)>0 ):
-        ws_params.relative_pose.append(msg.detections[0])
+# def cbDetection(msg, ws_params):
+#     if(ws_params.recieved_images < ws_params.des_number_of_images and len(msg.detections)>0 ):
+#         ws_params.relative_pose.append(msg.detections[0])
+#         print("[POST-PROCESSNG NODE] recorded scene number {} ".format(str(ws_params.recieved_images + 1)))
+#         ws_params.recieved_images += 1
+#         if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images and ws_params.recieved_images == ws_params.des_number_of_images):
+#             outputToFile(ws_params)
+
+def cbVehPoseEuler(msg, ws_params):
+    if(ws_params.recieved_images < ws_params.des_number_of_images):
+        ws_params.relative_pose.append(msg)
         print("[POST-PROCESSNG NODE] recorded scene number {} ".format(str(ws_params.recieved_images + 1)))
         ws_params.recieved_images += 1
         if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images and ws_params.recieved_images == ws_params.des_number_of_images):
             outputToFile(ws_params)
-
 
 def cbSubprocessTime(msg, ws_params):
     if(ws_params.recieved_subprocess_time < ws_params.des_number_of_images):  
@@ -85,25 +92,13 @@ def outputToFile(ws_params):
 
     #save every single result into .yaml file
     for num in range(0,ws_params.des_number_of_images):
-        # unpack the position and orientation returned by apriltags2 ros
-        t_msg = ws_params.relative_pose[num].pose.pose.pose.position
-        q_msg = ws_params.relative_pose[num].pose.pose.pose.orientation
-        
-        t = np.array([t_msg.x, t_msg.y, t_msg.z])
-        q = np.array([q_msg.x, q_msg.y, q_msg.z, q_msg.w])
+        position.append((round(ws_params.relative_pose[num].posx,5), 
+            round(ws_params.relative_pose[num].posy,5), 
+            round(ws_params.relative_pose[num].posz,5)))
+        orientation.append((round(ws_params.relative_pose[num].rotx,5), 
+            round(ws_params.relative_pose[num].roty,5), 
+            round(ws_params.relative_pose[num].rotz,5)))
 
-        veh_R_world, veh_t_world = robot_pose_in_word_frame(q,t)
-        veh_feaXYZ_world = rotation_matrix_to_euler(veh_R_world)
-
-        veh_t_world = veh_t_world.tolist()
-        veh_feaXYZ_world = veh_feaXYZ_world.tolist()
-
-        position.append((round(veh_t_world[0],5), round(veh_t_world[1],5), round(veh_t_world[2],5)))
-        orientation.append((round(veh_feaXYZ_world[0],5), round(veh_feaXYZ_world[1],5), round(veh_feaXYZ_world[2],5)))
-
-
-
-        
         subprocess_time_str =  ws_params.subprocess_time_str[num].data
         subprocess_time_str_split = filter(None, subprocess_time_str.split('  '))
         sub_time = {}  
@@ -201,7 +196,8 @@ if __name__ == '__main__':
     ws_params.des_number_of_images = rospy.get_param( host_name + "detection_post_processer_node/number_of_images")
     ws_params.decimate = rospy.get_param( host_name + "apriltag2_detector_node/decimate")
     
-    sub_img = rospy.Subscriber("tag_detections", AprilTagDetectionArray, cbDetection, ws_params)
+    #sub_img = rospy.Subscriber("tag_detections", AprilTagDetectionArray, cbDetection, ws_params)
+    veh_pose_euler = rospy.Subscriber("tag_detections_local_frame", VehiclePoseEuler, cbVehPoseEuler, ws_params)
     sub_time = rospy.Subscriber("subprocess_timings", String, cbSubprocessTime, ws_params)
     detection_statistics = rospy.Subscriber("/node_statistics", NodeStatistics, cbDetStatistic, ws_params)
 

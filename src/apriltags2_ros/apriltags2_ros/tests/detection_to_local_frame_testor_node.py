@@ -74,7 +74,8 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
             msg_info = CameraInfo()
             msg_info.height = 792
             msg_info.width = 1056
-            msg_info.K = [331.026328, 0.0, 319.035097, 0.0, 335.330339, 216.450133, 0.0, 0.0, 1.0]
+            msg_info.K = [ 315.30438249, 0, 336.45884863, 0, 317.96035133, 245.06631122, 0, 0, 1]
+            #msg_info.K = [331.026328, 0.0, 319.035097, 0.0, 335.330339, 216.450133, 0.0, 0.0, 1.0]
             self.pub_info.publish(msg_info)
             rospy.loginfo("Publish the camera info")
 
@@ -99,11 +100,11 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
             # The second parameter is groundtruth, and the third one is allowed mismatch
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].posx, 0.2, delta = self.am_p) 
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].posy, 0, delta = self.am_p)
-            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posz, 0, delta = self.am_p)
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posz, 0.028, delta = self.am_p)
             
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].rotx, 0, delta = self.am_r)
-            self.assertAlmostEqual(self.vehicle_pose_euler[-1].roty, groundtruth, delta = self.am_r)
-            self.assertAlmostEqual(self.vehicle_pose_euler[-1].rotz, 0, delta = self.am_r)
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].roty, 0, delta = self.am_r)
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].rotz, groundtruth, delta = self.am_r)
 
 #[RESOURCE]
 #https://github.com/duckietown/Software/blob/master18/catkin_ws/src/20-indefinite-navigation/apriltags_ros/apriltags_ros/tests/apriltags_tester_node.py

@@ -5,6 +5,7 @@
 
 	<group ns="$(arg veh)">
 		<node name="detection_post_processer_node" pkg="apriltags2_ros" type="detection_post_process.py" output="screen">
+		    <remap from="tag_detections_local_frame" to="apriltags2_ros/publish_detections_in_local_frame/tag_detections_local_frame" />
 			<param name="number_of_images" value="$(arg number_of_images)"/>
 			<param name="veh_name" value="$(arg veh)"/>
 		</node>
