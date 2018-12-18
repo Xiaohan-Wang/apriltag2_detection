@@ -17,7 +17,9 @@ class WorkSpaceParams(object):
     des_number_of_images = None
     recieved_images = 0 # topic /mete/tag_detections
     recieved_subprocess_time = 0 # topic /mete/subprocess_timings
+    recieved_pose_local_frame = 0 #topic tag_detections_local_frame
     relative_pose = [] # relative pose of each detection
+    relative_pose_local_frame = [] # publisded by tag_detections_local_frame
     subprocess_time_str = [] # the time of each subprocess of each detection
     det_statistics = [] #topic /node_statistics
     single_result_folder_path = None
@@ -51,20 +53,24 @@ class WorkSpaceParams(object):
         if not path.isdir(self.summary_folder_path):
             makedirs(self.summary_folder_path)
 
-# def cbDetection(msg, ws_params):
-#     if(ws_params.recieved_images < ws_params.des_number_of_images and len(msg.detections)>0 ):
-#         ws_params.relative_pose.append(msg.detections[0])
-#         print("[POST-PROCESSNG NODE] recorded scene number {} ".format(str(ws_params.recieved_images + 1)))
-#         ws_params.recieved_images += 1
-#         if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images and ws_params.recieved_images == ws_params.des_number_of_images):
-#             outputToFile(ws_params)
-
-def cbVehPoseEuler(msg, ws_params):
-    if(ws_params.recieved_images < ws_params.des_number_of_images):
-        ws_params.relative_pose.append(msg)
+def cbDetection(msg, ws_params):
+    if(ws_params.recieved_images < ws_params.des_number_of_images and len(msg.detections)>0 ):
+        ws_params.relative_pose.append(msg.detections[0])
         print("[POST-PROCESSNG NODE] recorded scene number {} ".format(str(ws_params.recieved_images + 1)))
         ws_params.recieved_images += 1
-        if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images and ws_params.recieved_images == ws_params.des_number_of_images):
+        if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
+            and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images
+            and ws_params.recieved_images == ws_params.des_number_of_images):
+            outputToFile(ws_params)
+
+def cbVehPoseEuler(msg, ws_params):
+    if(ws_params.recieved_pose_local_frame < ws_params.des_number_of_images):
+        ws_params.relative_pose_local_frame.append(msg)
+        print("[POST-PROCESSNG NODE] recorded scene number (local_fram) {} ".format(str(ws_params.recieved_pose_local_frame + 1)))
+        ws_params.recieved_pose_local_frame += 1
+        if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
+            and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images
+            and ws_params.recieved_images == ws_params.des_number_of_images):
             outputToFile(ws_params)
 
 def cbSubprocessTime(msg, ws_params):
@@ -73,31 +79,42 @@ def cbSubprocessTime(msg, ws_params):
         print("[POST-PROCESSNG NODE] recorded subprocess time number {} ".format(str(ws_params.recieved_subprocess_time + 1)))
         #print(msg)
         ws_params.recieved_subprocess_time += 1
-        if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images and ws_params.recieved_images == ws_params.des_number_of_images):     
+        if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
+            and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images 
+            and ws_params.recieved_images == ws_params.des_number_of_images):
             outputToFile(ws_params)
 
 def cbDetStatistic(msg, ws_params):
-	if(msg.node == ws_params.host_name + 'apriltag2_detector_node'):
-		if(not(ws_params.recieved_subprocess_time == ws_params.des_number_of_images and ws_params.recieved_images == ws_params.des_number_of_images)):
-			ws_params.det_statistics.append(msg)
+    if(msg.node == ws_params.host_name + 'apriltag2_detector_node'):
+        if(not(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
+            and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images 
+            and ws_params.recieved_images == ws_params.des_number_of_images)):
+            ws_params.det_statistics.append(msg)
 
 
 
 def outputToFile(ws_params):
-    position = []
-    orientation = []
+    position = [] #position: camera wrt apriltag
+    position_l = [] #position: robot wrt world
+    orientation = [] #quaterion: camera wrt apriltag
+    orientation_l = [] #euler: robot wrt world
     subprocess_time = []
     subprocess_name = []
     subprocess_number = 12 # if we add the step of relative pose estimation, it should be 12
 
     #save every single result into .yaml file
     for num in range(0,ws_params.des_number_of_images):
-        position.append((round(ws_params.relative_pose[num].posx,5), 
-            round(ws_params.relative_pose[num].posy,5), 
-            round(ws_params.relative_pose[num].posz,5)))
-        orientation.append((round(ws_params.relative_pose[num].rotx,5), 
-            round(ws_params.relative_pose[num].roty,5), 
-            round(ws_params.relative_pose[num].rotz,5)))
+        position_l.append((round(ws_params.relative_pose_local_frame[num].posx,5), 
+            round(ws_params.relative_pose_local_frame[num].posy,5), 
+            round(ws_params.relative_pose_local_frame[num].posz,5)))
+        orientation_l.append((round(ws_params.relative_pose_local_frame[num].rotx,5), 
+            round(ws_params.relative_pose_local_frame[num].roty,5), 
+            round(ws_params.relative_pose_local_frame[num].rotz,5)))
+
+        pos_temp = ws_params.relative_pose[num].pose.pose.pose.position
+        ori_temp = ws_params.relative_pose[num].pose.pose.pose.orientation
+        position.append((round(pos_temp.x,5),round(pos_temp.y,5),round(pos_temp.z,5)))
+        orientation.append((round(ori_temp.x,5),round(ori_temp.y,5),round(ori_temp.z,5),round(ori_temp.w,5)))
 
         subprocess_time_str =  ws_params.subprocess_time_str[num].data
         subprocess_time_str_split = filter(None, subprocess_time_str.split('  '))
@@ -117,9 +134,11 @@ def outputToFile(ws_params):
 
         single_result = {
             'count': num + 1,
-            'pos':{'x':position[num][0],'y':position[num][1],'z':position[num][2]},
-            'ori':{'ox':orientation[num][0],'oy':orientation[num][1],'oz':orientation[num][2]},
-            'subprocess_time':sub_time
+            'pos_local_frame (m)':{'x':position_l[num][0],'y':position_l[num][1],'z':position_l[num][2]},
+            'ori_local_frame (degree)':{'ox':orientation_l[num][0],'oy':orientation_l[num][1],'oz':orientation_l[num][2]},
+            'pose (m)':{'x':position[num][0],'y':position[num][1],'z':position[num][2]},
+            'ori (quaterion)':{'x':orientation[num][0],'y':orientation[num][1],'z':orientation[num][2], 'w':orientation[num][3]},
+            'subprocess_time (ms)':sub_time
         }
         single_result_file = path.join(ws_params.single_result_folder_path , ws_params.date + '_' + str(num + 1) + '.yaml')
 
@@ -127,8 +146,8 @@ def outputToFile(ws_params):
             yaml.dump(single_result,f,Dumper=yaml.RoundTripDumper)
     
     #save summary result into ws_params.summary
-    x,y,z = zip(*position)
-    ox,oy,oz = zip(*orientation)
+    x,y,z = zip(*position_l)
+    ox,oy,oz = zip(*orientation_l)
 
     apriltag_output = {
         'x':{'mean':float('%0.5f' %np.mean(x)),'min':min(x),'max':max(x),'range':float('%0.5f' %(max(x)-min(x))),'variance':float('%0.5f' %np.var(x))},
@@ -196,9 +215,8 @@ if __name__ == '__main__':
     ws_params.des_number_of_images = rospy.get_param( host_name + "detection_post_processer_node/number_of_images")
     ws_params.decimate = rospy.get_param( host_name + "apriltag2_detector_node/decimate")
     
-    #sub_img = rospy.Subscriber("tag_detections", AprilTagDetectionArray, cbDetection, ws_params)
+    sub_img = rospy.Subscriber("tag_detections", AprilTagDetectionArray, cbDetection, ws_params)
     veh_pose_euler = rospy.Subscriber("tag_detections_local_frame", VehiclePoseEuler, cbVehPoseEuler, ws_params)
     sub_time = rospy.Subscriber("subprocess_timings", String, cbSubprocessTime, ws_params)
     detection_statistics = rospy.Subscriber("/node_statistics", NodeStatistics, cbDetStatistic, ws_params)
-
     rospy.spin()

@@ -72,8 +72,8 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
 
             # Publish the camera info
             msg_info = CameraInfo()
-            msg_info.height = 792
-            msg_info.width = 1056
+            msg_info.height = 480
+            msg_info.width = 640
             msg_info.K = [ 315.30438249, 0, 336.45884863, 0, 317.96035133, 245.06631122, 0, 0, 1]
             #msg_info.K = [331.026328, 0.0, 319.035097, 0.0, 335.330339, 216.450133, 0.0, 0.0, 1.0]
             self.pub_info.publish(msg_info)

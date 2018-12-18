@@ -13,3 +13,4 @@ src/apriltags2_ros/apriltags2_ros/2018-12-09-03-36-57.bag
 src/apriltags2_ros/apriltags2_ros/test_result/
 *.pyc
 src/ros_statistics_msgs
+*.bag
