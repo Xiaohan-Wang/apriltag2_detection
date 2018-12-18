@@ -12,7 +12,8 @@ This package provide `detection_post_process.launch` to analyze the performance 
 3. `roslaunch pi_camera camera_apriltag_demo.launch veh:=duckiebot`
 4. `roslaunch apriltags2_ros apriltag2_demo.launch veh:=duckiebot`
 5. `roslaunch apriltags2_ros detection_to_local_frame.launch veh:=duckiebot`
-6. `roslaunch apriltags2_ros detection_post_process.launch veh:=duckiebot`
+6. `rosparam set enable_statistics true` & `rosrun rosprofiler rosprofiler`
+7. `roslaunch apriltags2_ros detection_post_process.launch veh:=duckiebot`
 
 ## unit test
 Several test are provided in this package for testing the correctness of the system.
