@@ -199,6 +199,8 @@ def outputToFile(ws_params):
     summary_file = path.join(ws_params.summary_folder_path, ws_params.date + "_" + str(ws_params.decimate) + "_" + str(ws_params.des_number_of_images) + '.yaml')    
     with open(summary_file,'w') as f:
         yaml.dump(summary, f, Dumper=yaml.RoundTripDumper)
+
+    relative_pose_estimation_analysis.publish('Done')
     rospy.signal_shutdown("work down!")
 
 
@@ -219,4 +221,5 @@ if __name__ == '__main__':
     veh_pose_euler = rospy.Subscriber("tag_detections_local_frame", VehiclePoseEuler, cbVehPoseEuler, ws_params)
     sub_time = rospy.Subscriber("subprocess_timings", String, cbSubprocessTime, ws_params)
     detection_statistics = rospy.Subscriber("/node_statistics", NodeStatistics, cbDetStatistic, ws_params)
+    relative_pose_estimation_analysis= rospy.Publisher("relative_pose_estimation_analysis", String, queue_size=1, latch=True)
     rospy.spin()
