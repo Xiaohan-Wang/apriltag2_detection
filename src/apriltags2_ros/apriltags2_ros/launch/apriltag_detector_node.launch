@@ -18,7 +18,7 @@
       <node if="$(arg local)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="apriltags2_ros_continuous_node" output="screen">
 	        <!-- Remap topics from those used in code to those on the ROS network -->
          <remap from="image_rect" to="camera_node/image/rect" />
-         <remap from="camera_info" to="rect_camera_info" />
+         <remap from="camera_node/image/camera_info" to="camera_node/rect_camera_info" />
 
 	       <param name="decimate" value="$(arg decimate)" />
          <param name="camera_frame" type="str" value="$(arg veh)/color_optical_frame" />

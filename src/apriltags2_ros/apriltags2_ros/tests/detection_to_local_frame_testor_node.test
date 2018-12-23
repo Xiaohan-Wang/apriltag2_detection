@@ -20,7 +20,7 @@
 
     <!-- Run unit test --> 
     <remap from="/image_rect" to="camera_node/image/rect" />
-    <remap from="/rect_camera_info" to="camera_node/image/camera_info" />
+    <remap from="/rect_camera_info" to="camera_node/rect_camera_info" />
     <remap from="/detection_to_local_frame" to="apriltags2_ros/publish_detections_in_local_frame/tag_detections_local_frame" />
 
     <test test-name="detection_to_local_frame_testor_node" pkg="apriltags2_ros" type="detection_to_local_frame_testor_node.py" ns="$(arg veh)">
