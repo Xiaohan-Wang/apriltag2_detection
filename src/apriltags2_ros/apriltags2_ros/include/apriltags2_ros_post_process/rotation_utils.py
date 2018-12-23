@@ -2,7 +2,7 @@ import tf.transformations as tr
 import numpy as np
 import math
 
-TILT_ANGLE = 18 * math.pi / 180.0
+TILT_ANGLE = 16 * math.pi / 180.0
 
 
 def camztiltedTtag(q,t):
@@ -101,7 +101,7 @@ def robot_pose_in_word_frame(q_at,t_at):
         veh_t_world (numpy.array): translation vector from robots cf to apriltag's cf expressed in robot cf.
     """
 
-    tOvehOcamx = np.array([0.10,0.0,0.05])
+    tOvehOcamx = np.array([0.10,0.0,0.065])
 
     camztilted_T_tag = camztiltedTtag(q_at,t_at)
     camz_T_camztilted = camzTcamztilted()

@@ -21,12 +21,8 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
         #allowed_mismatch for postion : am_p
         #allowed_mismatch for rotation : am_r
 
-        #testbot is default duckitbot name in this test, actually we don't need to input 
-        #the name of duckiebot because we are using static images
-        #TO DO:change absolute path into relative path?
-        self.am_p = rospy.get_param("/testbot/detection_to_local_frame_testor_node/am_p")
-        self.am_r = rospy.get_param("/testbot/detection_to_local_frame_testor_node/am_r")
-
+        self.am_p = rospy.get_param("detection_to_local_frame_testor_node/am_p")
+        self.am_r = rospy.get_param("detection_to_local_frame_testor_node/am_r")
         # Setup the publisher and subscriber
         self.pub_rect  = rospy.Publisher("/image_rect", Image, queue_size=1, latch=True)
         self.pub_info  = rospy.Publisher("/rect_camera_info", CameraInfo, queue_size=1, latch=True)
@@ -58,7 +54,7 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
         test folder is set to /tests/test_images by default, but it can also be appointed when starting this test node
         all images in the test folder are used 
         '''
-        path = rospy.get_param("/testbot/detection_to_local_frame_testor_node/path")
+        path = rospy.get_param("detection_to_local_frame_testor_node/path")
         self.setup()    # Setup the node
         
         total_test_num = 0
@@ -72,10 +68,10 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
 
             # Publish the camera info
             msg_info = CameraInfo()
-            msg_info.height = 480
-            msg_info.width = 640
-            msg_info.K = [ 315.30438249, 0, 336.45884863, 0, 317.96035133, 245.06631122, 0, 0, 1]
-            #msg_info.K = [331.026328, 0.0, 319.035097, 0.0, 335.330339, 216.450133, 0.0, 0.0, 1.0]
+            msg_info.height = 792
+            msg_info.width = 1056
+            msg_info.K = [329.8729619143081, 0.0, 528.0, 0.0, 332.94611303946357, 396.0, 0.0, 0.0, 1.0]
+            #msg_info.K = [315.3043824949326, 0.0, 528.0, 0.0, 317.96035132826944, 396.0, 0.0, 0.0, 1.0]
             self.pub_info.publish(msg_info)
             rospy.loginfo("Publish the camera info")
 
@@ -98,16 +94,23 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
                 self.vehicle_pose_euler[-1].roty, self.vehicle_pose_euler[-1].rotz)
 
             # The second parameter is groundtruth, and the third one is allowed mismatch
-            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posx, 0.2, delta = self.am_p) 
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posx, 0.3, delta = self.am_p) 
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].posy, 0, delta = self.am_p)
-            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posz, 0.028, delta = self.am_p)
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posz, 0.05, delta = self.am_p)
             
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].rotx, 0, delta = self.am_r)
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].roty, 0, delta = self.am_r)
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].rotz, groundtruth, delta = self.am_r)
 
-#[RESOURCE]
-#https://github.com/duckietown/Software/blob/master18/catkin_ws/src/20-indefinite-navigation/apriltags_ros/apriltags_ros/tests/apriltags_tester_node.py
+'''
+[RESOURCE]
+
+[1] template: https://github.com/duckietown/Software/blob/master18/catkin_ws/src/20-indefinite-navigation/apriltags_ros/apriltags_ros/tests/apriltags_tester_node.py
+
+[2] rectified camera info: https://github.com/selcukercan/Software/blob/master18/catkin_ws/src/05-teleop/pi_camera/src/image_rect_full_ratio.py
+
+[3] value of groundtruth: https://github.com/selcukercan/apriltag2-addon/blob/master/src/apriltags2_ros/apriltags2_ros/include/apriltags2_ros_post_process/rotation_utils.py
+'''
                 
 if __name__ == '__main__':
     rostest.rosrun('apriltags2_ros', 'detection_to_local_frame_testor_node', DetectionToLocalFrameTestorNode)

@@ -4,11 +4,11 @@
 
     <arg name="veh" default="testbot" doc="Name of vehicle. ex: megaman"/>
     <arg name="path" default="$(find apriltags2_ros)/tests/test_images" />
-    <arg name="am_p" default="10" />
-    <arg name="am_r" default="10" />
+    <arg name="am_p" default="0.02" />
+    <arg name="am_r" default="5" />
 
 
-    <!-- Run the node -->
+    <!-- Apriltag detection -->
     <include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
         <arg name="veh" value="$(arg veh)"/>
     </include>
@@ -18,10 +18,11 @@
 		<arg name="veh" value="$(arg veh)"/>
 	</include>
 
-    <!-- Run unit test -->
-    <remap from="/image_rect" to="/testbot/camera_node/image/rect" />
-    <remap from="/rect_camera_info" to="/testbot/camera_node/image/camera_info" />
-    <remap from="/detection_to_local_frame" to="/testbot/apriltags2_ros/publish_detections_in_local_frame/tag_detections_local_frame" />
+    <!-- Run unit test --> 
+    <remap from="/image_rect" to="camera_node/image/rect" />
+    <remap from="/rect_camera_info" to="camera_node/image/camera_info" />
+    <remap from="/detection_to_local_frame" to="apriltags2_ros/publish_detections_in_local_frame/tag_detections_local_frame" />
+
     <test test-name="detection_to_local_frame_testor_node" pkg="apriltags2_ros" type="detection_to_local_frame_testor_node.py" ns="$(arg veh)">
         <param name="path" value="$(arg path)" />
         <param name="am_p" value="$(arg am_p)" />
