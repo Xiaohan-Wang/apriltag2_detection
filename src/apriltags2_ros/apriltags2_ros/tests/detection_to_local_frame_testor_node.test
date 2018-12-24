@@ -14,9 +14,9 @@
     </include>
     
     <!--detection_to_local_frame Node-->
-	<include file="$(find apriltags2_ros)/launch/detection_to_local_frame.launch">
-		<arg name="veh" value="$(arg veh)"/>
-	</include>
+    <include file="$(find apriltags2_ros)/launch/detection_to_local_frame.launch">
+        <arg name="veh" value="$(arg veh)"/>
+    </include>
 
     <!-- Run unit test --> 
     <remap from="/image_rect" to="camera_node/image/rect" />

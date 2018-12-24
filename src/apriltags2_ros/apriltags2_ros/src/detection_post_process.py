@@ -200,7 +200,7 @@ def outputToFile(ws_params):
     with open(summary_file,'w') as f:
         yaml.dump(summary, f, Dumper=yaml.RoundTripDumper)
 
-    relative_pose_estimation_analysis.publish('Done')
+    relative_pose_estimation_analysis.publish(summary_file)
     rospy.signal_shutdown("work down!")
 
 
