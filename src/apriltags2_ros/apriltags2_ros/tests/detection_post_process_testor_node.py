@@ -9,7 +9,7 @@ class DetectionPostProcessTestorNode(unittest.TestCase):
     def setup(self):
         # Setup the node
         rospy.init_node('detection_post_process_testor_node', anonymous=False)
-
+        self.relative_pose_analysis = False
         self.allowed_virt_memory = rospy.get_param("detection_post_process_testor_node/allowed_virt_memory")
         self.allowed_real_memory = rospy.get_param("detection_post_process_testor_node/allowed_real_memory")
         self.allowed_cpu = rospy.get_param("detection_post_process_testor_node/allowed_cpu")
@@ -28,7 +28,7 @@ class DetectionPostProcessTestorNode(unittest.TestCase):
 
     def tagCallback(self, msg):
         self.relative_pose_analysis = True
-        self.summary_file_path = msg
+        self.summary_file_path = msg.data
 
     def test_publisher_and_subscriber(self):
         '''
@@ -54,7 +54,7 @@ class DetectionPostProcessTestorNode(unittest.TestCase):
         with open(self.summary_file_path, 'r') as f:
             summary = yaml.load(f.read())
             virt_memory = summary['cpu/ram (MB)']['virt_mem']['mean']
-            real_memory = summary['cpu/ram (MB)']['real_memory']['mean']
+            real_memory = summary['cpu/ram (MB)']['real_mem']['mean']
             cpu = summary['cpu/ram (MB)']['cpu_load']['mean']
             p_range = [summary['apriltag_output']['x (m)']['range'],
                        summary['apriltag_output']['y (m)']['range'],

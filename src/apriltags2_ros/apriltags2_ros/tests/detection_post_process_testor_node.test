@@ -1,5 +1,7 @@
 <launch>
- 	<arg name="veh"/>
+ 	<param name ="/enable_statistics" value = "True" />
+
+  <arg name="veh"/>
 
   <arg name="number_of_sample_images" default="10"/>
   <arg name="decimate" default="1.0"/>
@@ -28,9 +30,7 @@
     </include>
 
   <!-- rosprofiler -->
-    <node pkg="rosprofiler" type="rosprofiler" name="rosprofiler">
-        <param name ="enable_statistics" value = "true" />
-    </node>
+    <node pkg="rosprofiler" type="rosprofiler" name="rosprofiler" />
 
   <!--detection_post_process-->
     <include file="$(find apriltags2_ros)/launch/detection_post_process.launch">
