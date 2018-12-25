@@ -4,6 +4,7 @@ import unittest
 import rostest
 from std_msgs.msg import String
 from ruamel import yaml
+import numpy as np
 
 class DetectionPostProcessTestorNode(unittest.TestCase):
     def setup(self):
@@ -22,8 +23,8 @@ class DetectionPostProcessTestorNode(unittest.TestCase):
         self.pose_analysis = rospy.Subscriber( "relative_pose_estimation_analysis", String, self.tagCallback)
 
         # Wait for the node  to finish starting up
-        timeout = rospy.Time.now() + rospy.Duration(5) # Wait at most 5 seconds for the node to come up
-        while self.pose_analysis.get_num_connections() and not rospy.is_shutdown() and rospy.Time.now() < timeout:
+        timeout = rospy.Time.now() + rospy.Duration(15) # Wait at most 15 seconds for the node to come up
+        while self.pose_analysis.get_num_connections() < 1 and not rospy.is_shutdown() and rospy.Time.now() < timeout:
             rospy.sleep(0.1)
 
     def tagCallback(self, msg):
@@ -69,13 +70,17 @@ class DetectionPostProcessTestorNode(unittest.TestCase):
                        summary['apriltag_output']['oy (degree)']['variance'],
                        summary['apriltag_output']['oz (degree)']['variance']]
 
-        self.assertLessEqual(virt_memory, self.allowed_virt_memory) 
-        self.assertAlmostEqual(real_memory, self.allowed_real_memory)
-        self.assertAlmostEqual(cpu, self.allowed_cpu)    
-        self.assertAlmostEqual(p_range, [self.allowed_p_range]*3)
-        self.assertAlmostEqual(p_var, [self.allowed_p_var]*3)
-        self.assertAlmostEqual(r_range, [self.allowed_r_range]*3)
-        self.assertAlmostEqual(r_var, [self.allowed_r_var]*3)
+        #CPU/RAM info are published in a certain frequency
+        #the number of received cpu/ram info depends on the processing speed of CPU (faster->less messages)
+        #we compare the average values of these infos with those given upper limit
+        self.assertLessEqual(np.mean(virt_memory), self.allowed_virt_memory) 
+        self.assertLessEqual(np.mean(real_memory), self.allowed_real_memory)
+        self.assertLessEqual(np.mean(cpu), self.allowed_cpu)
+
+        self.assertLessEqual(p_range, [self.allowed_p_range]*3)
+        self.assertLessEqual(p_var, [self.allowed_p_var]*3)
+        self.assertLessEqual(r_range, [self.allowed_r_range]*3)
+        self.assertLessEqual(r_var, [self.allowed_r_var]*3)
                 
 if __name__ == '__main__':
     rostest.rosrun('apriltags2_ros', 'detection_post_process_testor_node', DetectionPostProcessTestorNode)
