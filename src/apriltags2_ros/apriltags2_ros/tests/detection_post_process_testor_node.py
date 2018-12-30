@@ -59,13 +59,13 @@ class DetectionPostProcessTestorNode(unittest.TestCase):
             real_memory = summary['cpu/ram']['real_mem (MB)']['mean']
             cpu_load = summary['cpu/ram']['cpu_load (%)']['mean']
             #range of positon estimation
-            p_range = [summary['apriltag_output']['x (m)']['range'],
-                       summary['apriltag_output']['y (m)']['range'],
-                       summary['apriltag_output']['z (m)']['range']]
+            p_range = [summary['apriltag_output']['x (cm)']['range'],
+                       summary['apriltag_output']['y (cm)']['range'],
+                       summary['apriltag_output']['z (cm)']['range']]
             #variance of positon estimation
-            p_var = [summary['apriltag_output']['x (m)']['variance'],
-                       summary['apriltag_output']['y (m)']['variance'],
-                       summary['apriltag_output']['z (m)']['variance']]
+            p_var = [summary['apriltag_output']['x (cm)']['variance'],
+                       summary['apriltag_output']['y (cm)']['variance'],
+                       summary['apriltag_output']['z (cm)']['variance']]
             #range of orientation estimation
             r_range = [summary['apriltag_output']['ox (degree)']['range'],
                        summary['apriltag_output']['oy (degree)']['range'],

@@ -14,6 +14,8 @@ from apriltags2_ros_post_process.rotation_utils import *
 
 class WorkSpaceParams(object):
     host_name = None
+    groundtruth_x = None
+    groundtruth_y = None
     des_number_of_images = None # desired number of pose estimation
     recieved_images = 0 # number of received pose estimation
     recieved_subprocess_time = 0 # number of received messages of processing time 
@@ -102,9 +104,9 @@ def outputToFile(ws_params):
     #save every single result into .yaml file
     for num in range(0,ws_params.des_number_of_images):
         #pose estimation with frame trasformation
-        position_l.append((round(ws_params.relative_pose_local_frame[num].posx,5), 
-            round(ws_params.relative_pose_local_frame[num].posy,5), 
-            round(ws_params.relative_pose_local_frame[num].posz,5)))
+        position_l.append((round(ws_params.relative_pose_local_frame[num].posx*100,5), 
+            round(ws_params.relative_pose_local_frame[num].posy*100,5), 
+            round(ws_params.relative_pose_local_frame[num].posz*100,5)))
         orientation_l.append((round(ws_params.relative_pose_local_frame[num].rotx,5), 
             round(ws_params.relative_pose_local_frame[num].roty,5), 
             round(ws_params.relative_pose_local_frame[num].rotz,5)))
@@ -112,7 +114,7 @@ def outputToFile(ws_params):
         #pose estimation
         pos_temp = ws_params.relative_pose[num].pose.pose.pose.position
         ori_temp = ws_params.relative_pose[num].pose.pose.pose.orientation
-        position.append((round(pos_temp.x,5),round(pos_temp.y,5),round(pos_temp.z,5)))
+        position.append((round(pos_temp.x*100,5),round(pos_temp.y*100,5),round(pos_temp.z*100,5)))
         orientation.append((round(ori_temp.x,5),round(ori_temp.y,5),round(ori_temp.z,5),round(ori_temp.w,5)))
 
         #extract name and time consumption of each subprocess in pose estimation from received message
@@ -136,9 +138,9 @@ def outputToFile(ws_params):
 
         single_result = {
             'image ID': num + 1,
-            'pos with frame trasformation (m)':{'x':position_l[num][0],'y':position_l[num][1],'z':position_l[num][2]},
+            'pos with frame trasformation (cm)':{'x':position_l[num][0],'y':position_l[num][1],'z':position_l[num][2]},
             'ori with frame trasformation (degree)':{'ox':orientation_l[num][0],'oy':orientation_l[num][1],'oz':orientation_l[num][2]},
-            'pose (m)':{'x':position[num][0],'y':position[num][1],'z':position[num][2]},
+            'pose (cm)':{'x':position[num][0],'y':position[num][1],'z':position[num][2]},
             'ori (quaterion)':{'x':orientation[num][0],'y':orientation[num][1],'z':orientation[num][2], 'w':orientation[num][3]},
             'subprocess_time (ms)':sub_time
         }
@@ -152,9 +154,9 @@ def outputToFile(ws_params):
     x,y,z = zip(*position_l)
     ox,oy,oz = zip(*orientation_l)
     apriltag_output = {
-        'x (m)':{'mean':float('%0.5f' %np.mean(x)),'min':min(x),'max':max(x),'range':float('%0.5f' %(max(x)-min(x))),'variance':float('%0.5f' %np.var(x))},
-        'y (m)':{'mean':float('%0.5f' %np.mean(y)),'min':min(y),'max':max(y),'range':float('%0.5f' %(max(y)-min(y))),'variance':float('%0.5f' %np.var(y))},
-        'z (m)':{'mean':float('%0.5f' %np.mean(z)),'min':min(z),'max':max(z),'range':float('%0.5f' %(max(z)-min(z))),'variance':float('%0.5f' %np.var(z))},
+        'x (cm)':{'mean':float('%0.5f' %np.mean(x)),'min':min(x),'max':max(x),'range':float('%0.5f' %(max(x)-min(x))),'variance':float('%0.5f' %np.var(x))},
+        'y (cm)':{'mean':float('%0.5f' %np.mean(y)),'min':min(y),'max':max(y),'range':float('%0.5f' %(max(y)-min(y))),'variance':float('%0.5f' %np.var(y))},
+        'z (cm)':{'mean':float('%0.5f' %np.mean(z)),'min':min(z),'max':max(z),'range':float('%0.5f' %(max(z)-min(z))),'variance':float('%0.5f' %np.var(z))},
         'ox (degree)':{'mean':float('%0.5f' %np.mean(ox)),'min':min(ox),'max':max(ox),'range':float('%0.5f' %(max(ox)-min(ox))),'variance':float('%0.5f' %np.var(ox))},
         'oy (degree)':{'mean':float('%0.5f' %np.mean(oy)),'min':min(oy),'max':max(oy),'range':float('%0.5f' %(max(oy)-min(oy))),'variance':float('%0.5f' %np.var(oy))},
         'oz (degree)':{'mean':float('%0.5f' %np.mean(oz)),'min':min(oz),'max':max(oz),'range':float('%0.5f' %(max(oz)-min(oz))),'variance':float('%0.5f' %np.var(oz))},
@@ -229,7 +231,9 @@ def outputToFile(ws_params):
         'cpu/ram':cpu_summary
     }
 
-    summary_file = path.join(ws_params.summary_folder_path, ws_params.date + "_" + str(ws_params.decimate) + "_" + str(ws_params.des_number_of_images) + '.yaml')    
+    summary_file = path.join(ws_params.summary_folder_path, ws_params.date + "_" 
+                    + str(ws_params.groundtruth_x) + "_" + str(ws_params.groundtruth_y) + "_"
+                    + str(ws_params.decimate) + "_" + str(ws_params.des_number_of_images) + '.yaml')    
     with open(summary_file,'w') as f:
         yaml.dump(summary,f,Dumper=yaml.RoundTripDumper)
 
@@ -247,6 +251,9 @@ if __name__ == '__main__':
     ws_params = WorkSpaceParams()
     host_name = rospy.get_namespace() # /robot_name/package_name
     
+    ws_params.groundtruth_x = input("groundtruth x:")
+    ws_params.groundtruth_y = input("groundtruth y:")
+
     ws_params.host_name = host_name 
     ws_params.des_number_of_images = rospy.get_param( host_name + "detection_post_processer_node/number_of_images")
     ws_params.decimate = rospy.get_param( host_name + "apriltag2_detector_node/decimate")
