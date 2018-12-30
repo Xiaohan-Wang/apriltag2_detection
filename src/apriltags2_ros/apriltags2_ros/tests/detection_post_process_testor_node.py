@@ -22,8 +22,8 @@ class DetectionPostProcessTestorNode(unittest.TestCase):
         # Setup the subscriber
         self.pose_analysis = rospy.Subscriber( "relative_pose_estimation_analysis", String, self.tagCallback)
 
-        # Wait for the node  to finish starting up
-        timeout = rospy.Time.now() + rospy.Duration(15) # Wait at most 15 seconds for the node to come up
+        # Wait for the node to finish starting up
+        timeout = rospy.Time.now() + rospy.Duration(5) # Wait at most 5 seconds for the node to come up
         while self.pose_analysis.get_num_connections() < 1 and not rospy.is_shutdown() and rospy.Time.now() < timeout:
             rospy.sleep(0.1)
 
@@ -54,28 +54,30 @@ class DetectionPostProcessTestorNode(unittest.TestCase):
 
         with open(self.summary_file_path, 'r') as f:
             summary = yaml.load(f.read())
-            virt_memory = summary['cpu/ram (MB)']['virt_mem']['mean']
-            real_memory = summary['cpu/ram (MB)']['real_mem']['mean']
-            cpu = summary['cpu/ram (MB)']['cpu_load']['mean']
+            #avarage value of cpu/ram usage
+            virt_memory = summary['cpu/ram']['virt_mem (MB)']['mean']
+            real_memory = summary['cpu/ram']['real_mem (MB)']['mean']
+            cpu_load = summary['cpu/ram']['cpu_load (%)']['mean']
+            #range of positon estimation
             p_range = [summary['apriltag_output']['x (m)']['range'],
                        summary['apriltag_output']['y (m)']['range'],
                        summary['apriltag_output']['z (m)']['range']]
+            #variance of positon estimation
             p_var = [summary['apriltag_output']['x (m)']['variance'],
                        summary['apriltag_output']['y (m)']['variance'],
                        summary['apriltag_output']['z (m)']['variance']]
+            #range of orientation estimation
             r_range = [summary['apriltag_output']['ox (degree)']['range'],
                        summary['apriltag_output']['oy (degree)']['range'],
                        summary['apriltag_output']['oz (degree)']['range']]
+            #variance of orientation estimation
             r_var = [summary['apriltag_output']['ox (degree)']['variance'],
                        summary['apriltag_output']['oy (degree)']['variance'],
                        summary['apriltag_output']['oz (degree)']['variance']]
 
-        #CPU/RAM info are published in a certain frequency
-        #the number of received cpu/ram info depends on the processing speed of CPU (faster->less messages)
-        #we compare the average values of these infos with those given upper limit
-        self.assertLessEqual(np.mean(virt_memory), self.allowed_virt_memory) 
-        self.assertLessEqual(np.mean(real_memory), self.allowed_real_memory)
-        self.assertLessEqual(np.mean(cpu), self.allowed_cpu)
+        self.assertLessEqual(virt_memory, self.allowed_virt_memory) 
+        self.assertLessEqual(real_memory, self.allowed_real_memory)
+        self.assertLessEqual(cpu_load, self.allowed_cpu)
 
         self.assertLessEqual(p_range, [self.allowed_p_range]*3)
         self.assertLessEqual(p_var, [self.allowed_p_var]*3)

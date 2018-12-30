@@ -20,7 +20,6 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
 
         #allowed_mismatch for postion : am_p
         #allowed_mismatch for rotation : am_r
-
         self.am_p = rospy.get_param("detection_to_local_frame_testor_node/am_p")
         self.am_r = rospy.get_param("detection_to_local_frame_testor_node/am_r")
         # Setup the publisher and subscriber
@@ -57,13 +56,12 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
         path = rospy.get_param("detection_to_local_frame_testor_node/path")
         self.setup()    # Setup the node
         
-        total_test_num = 0
+        total_test_num = 0   # total number of published test images
         for filename in os.listdir(path):
             ab_path = path + '/' + filename
             if(not os.path.isfile(ab_path)):
                 continue
-            total_test_num += 1
-            groundtruth = float(filename.split('.')[0])
+            groundtruth = float(filename.split('.')[0])  # name of test image should be set to its groundtruth
             rospy.loginfo("we are testing image %d : %d degree", total_test_num, groundtruth)
 
             # Publish the camera info
@@ -71,7 +69,6 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
             msg_info.height = 792
             msg_info.width = 1056
             msg_info.K = [329.8729619143081, 0.0, 528.0, 0.0, 332.94611303946357, 396.0, 0.0, 0.0, 1.0]
-            #msg_info.K = [315.3043824949326, 0.0, 528.0, 0.0, 317.96035132826944, 396.0, 0.0, 0.0, 1.0]
             self.pub_info.publish(msg_info)
             rospy.loginfo("Publish the camera info")
 
@@ -81,6 +78,7 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
             msg_rect = cvb.cv2_to_imgmsg(img, encoding="bgr8")
             self.pub_rect.publish(msg_rect)
             rospy.loginfo("Publish the test image")
+            total_test_num += 1
 
             # Wait for the message to be received
             timeout = rospy.Time.now() + rospy.Duration(5) # Wait at most 5 seconds for the node to reply
