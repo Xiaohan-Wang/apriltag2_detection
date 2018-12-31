@@ -16,6 +16,7 @@ class WorkSpaceParams(object):
     host_name = None
     groundtruth_x = None
     groundtruth_y = None
+    groundtruth_yaw = None
     des_number_of_images = None # desired number of pose estimation
     recieved_images = 0 # number of received pose estimation
     recieved_subprocess_time = 0 # number of received messages of processing time 
@@ -232,8 +233,8 @@ def outputToFile(ws_params):
     }
 
     summary_file = path.join(ws_params.summary_folder_path, ws_params.date + "_" 
-                    + str(ws_params.groundtruth_x) + "_" + str(ws_params.groundtruth_y) + "_"
-                    + str(ws_params.decimate) + "_" + str(ws_params.des_number_of_images) + '.yaml')    
+                    + str(ws_params.groundtruth_x) + "_" + str(ws_params.groundtruth_y) + "_" + str(ws_params.groundtruth_yaw)
+                    + "_" + str(ws_params.decimate) + "_" + str(ws_params.des_number_of_images) + '.yaml')    
     with open(summary_file,'w') as f:
         yaml.dump(summary,f,Dumper=yaml.RoundTripDumper)
 
@@ -253,6 +254,7 @@ if __name__ == '__main__':
     
     ws_params.groundtruth_x = input("groundtruth x:")
     ws_params.groundtruth_y = input("groundtruth y:")
+    ws_params.groundtruth_yaw = input("groundtruth yaw:")
 
     ws_params.host_name = host_name 
     ws_params.des_number_of_images = rospy.get_param( host_name + "detection_post_processer_node/number_of_images")
