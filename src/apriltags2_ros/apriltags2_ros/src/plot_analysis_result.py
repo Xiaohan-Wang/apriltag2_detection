@@ -5,12 +5,13 @@ from ruamel import yaml
 import numpy as np
 
 
-option = 1 # select from [1,2,3]
+option = 3 # select from [1,2,3]
 mismatch_option = {1:'x (cm)', 2:'y (cm)', 3:'oz (degree)'}  # test option;  oz represents yaw
 
 groundtruth = {'x (cm)':[], 'y (cm)':[], 'oz (degree)':[]} # oz represents yaw
 mismatch = [] #mismatch 
 variance = [] #variance
+text = []
 
 path_name = os.getcwd()
 parent_path = os.path.dirname(path_name)
@@ -23,34 +24,34 @@ for filename in os.listdir(summary_path):
 
     with open(summary_path + '/' + filename, 'r') as f:
         summary = yaml.load(f.read())   
-        test_mean = summary['apriltag_output'][mismatch_option[option]]['mean']
+        test_mean = summary['apriltag_output'][mismatch_option[option]]['mean'] 
         test_variance = summary['apriltag_output'][mismatch_option[option]]['variance']
         test_groundtruth = groundtruth[mismatch_option[option]][-1]
-
+        if option == 1: # I forget to add 10cm to the distance between camera and apriltag
+            test_groundtruth = np.array(test_groundtruth) + 10
         mismatch.append(abs(test_mean-test_groundtruth))
         variance.append(test_variance)
+        text.append('mismatch: ' + str(abs(test_mean-test_groundtruth)) + '<br>variance: ' + str(test_variance))
 
-# print('----------------------------------------------------')
-# print(mismatch)
-# print(max(mismatch)-min(mismatch))
-# print('----------------------------------------------------')
 
-# color = (np.array(mismatch)-min(mismatch))/(max(mismatch)-min(mismatch))*255
-# #TODO:how to resize size?
-# size = np.array(variance)/(min(variance)+1e-8)*10
+# size represents variance for yaw
+if option == 3:
+    size = np.array(variance)*50000   #for yaw, we include the variance information in the plot
+else:
+    size = [10] * len(variance)  # for x and y, we do not include varinance information in the plots
+
+# size = np.array(variance)
+# print(size)
 
 data = [
     {
         'x': groundtruth['x (cm)'],
         'y': groundtruth['y (cm)'],
+        'text': text,
         'mode': 'markers',
         'marker': {
-            # 'color': [120, 125, 130, 135, 140, 145],
-            # 'size': [15, 30, 55, 70, 90, 110],
-            # 'color': color,  #mismatch
-            # 'size': size,  #variance
-            'color': 150,  #mismatch
-            'size': 50,  #variance
+            'color': mismatch,  #mismatch
+            'size': size, 
             'showscale': True
         }
     }
