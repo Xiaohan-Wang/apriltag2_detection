@@ -221,7 +221,8 @@ def outputToFile(ws_params):
             'mean':round(real_mem_mean,5),
             'max':real_mem_max,
             'index of max': cpu_ram_info['real_mem (MB)']['max'].index(real_mem_max)
-        }
+        },
+        'cpu_ram_info':cpu_ram_info
     }
 
     summary = {
