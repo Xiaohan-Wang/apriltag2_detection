@@ -7,7 +7,7 @@ import numpy as np
 import copy
 
 option = 3 # select from [1,2,3]
-option_str = {1:'cpu_load (%)', 2:'virt_mem (MB)', 3:'real_mem (MB)'}  # test option;  oz represents yaw
+option_str = {1:'cpu_load (%)', 2:'virt_mem (MB)', 3:'real_mem (MB)'} 
 
 path_name = os.getcwd()
 parent_path = os.path.dirname(path_name)
@@ -24,7 +24,7 @@ tem_annotation = {
 annotation = []
 
 # a box plot for each x
-for x in range(10,11,2):
+for x in range(10,31,2):
     fig = tools.make_subplots(rows=1, cols=2, subplot_titles=('max usage','mean usage'))
 
     for filename in os.listdir(summary_path):
