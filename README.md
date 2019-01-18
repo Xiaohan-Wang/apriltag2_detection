@@ -10,10 +10,12 @@ This package provides `detection_post_process.launch` to analyze the performance
 1. `catkin_make`
 2. `source devel/setup.bash`
 3. `roslaunch pi_camera camera_apriltag_demo.launch veh:=duckiebot`
-4. `roslaunch apriltags2_ros apriltag2_demo.launch veh:=duckiebot`
+4. `roslaunch apriltags2_ros apriltag2_demo.launch veh:=duckiebot` 
+	  * you can also add `decimate:= ![num]` (num >= 1) to lessen the resolution to the 1/num of the original one, so that apriltag detection could run faster. It is set to 1.0 by default.
 5. `roslaunch apriltags2_ros detection_to_local_frame.launch veh:=duckiebot`
 6. `rosparam set enable_statistics true` & `rosrun rosprofiler rosprofiler`
 7. `roslaunch apriltags2_ros detection_post_process.launch veh:=duckiebot`
+    * you can also add `number_of_images:= ![num]` (num >= 1) to control the number of images you want to take in the same place, each of these images is used for computing one relative pose, and then all estimated poses are used for analysis which is mentioned above.
 
 ## unit test
 Several test are provided in this package for testing the correctness of the system.
@@ -28,10 +30,11 @@ Several test are provided in this package for testing the correctness of the sys
         * Z -> up
     2. the groundtruth for z is related to the relative height difference between camera and AprilTag. 
     3. the groundtruth for rotx and roty essentially depends on whether the Apriltag is strictly perpendicular in both x and y direction in world frame.           
-    4. It is hard to guarantee that different duckiebot and Apriltag have the very same condition, so the groundtruth of above three tests must be adjusted based on your own duckiebot and Apriltag if you want to use them.
+    4. It is hard to guarantee that different duckiebot and Apriltag have the very same condition, so the groundtruth of above three tests must be adjusted based on your own duckiebot and Apriltag if you want to use your own images.
    
 * `rostest detection_to_local_frame_testor_node.test`
 * `rostest --text detection_to_local_frame_testor_node.test` to get console output to the screen
+* you can also add `am_p:=![num1]` and `am_r:=![num2]` to set the allow mismatch for position and orientation. am_p = 2 and am_r = 5 by default.  
 
 ### detection_post_process_testor_node.test
 1. This test focuses on the analysis produced by `detection_post_process.launch`.
@@ -41,3 +44,13 @@ Several test are provided in this package for testing the correctness of the sys
 
 * `rostest detection_post_process_testor_node.test`
 * `rostest --text detection_post_process_testor_node.test` to get console output to the screen
+* optional: 
+    * `number_of_sample_images:=![num]` : same as the description above
+    * `decimate:= ![num]` : same as the description above
+    * `allowed_cpu:=![num1]` : allowed cpu/ram usage on one core (it could be larger than 100%)
+    * `allowed_real_memory:=![num2]` : allowed real memory usage
+    * `allowed_virt_memory:=![num3]` : allowed virtual memory usage
+    * `allowed_p_range:=![num4]` : range of position estimation
+    * `allowed_p_var:=![num5]` : variance of position estimation
+    * `allowed_r_range:=![num6]` : range of orientation estimation
+    * `allowed_r_var:=![num7]` : variance of orientation estimation
