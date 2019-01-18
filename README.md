@@ -44,3 +44,11 @@ Several test are provided in this package for testing the correctness of the sys
 
 * `rostest detection_post_process_testor_node.test`
 * `rostest --text detection_post_process_testor_node.test` to get console output to the screen
+* optional: 
+    * `allowed_cpu:=![num1]` : allow cpu/ram usage on one core (it could be larger than 100%)
+    * `allowed_real_memory:=![num2]` : allowed real memory usage
+    * `allowed_virt_memory:=![num3]` : allowed virtual memory usage
+    * `allowed_p_range:=![num4]` : range of orientation estimation
+    * `allowed_p_var:=![num5]` : variance of position estimation
+    * `allowed_r_range:=![num6]` : range of orientation estimation
+    * `allowed_r_var:=![num7]` : variance of orientation estimation
