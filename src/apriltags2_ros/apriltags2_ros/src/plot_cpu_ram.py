@@ -68,9 +68,8 @@ for x in range(10,31,8):
     fig['layout']['yaxis2'].update(title='mean ' + option_str[option], titlefont={'size':20}, autorange = True)
     fig['layout'].update(
         title = option_str[option] + ' (x= ' + str(x) + 'cm, yaw= '+ str(groundtruth_yaw) + ')', 
-        titlefont={'size':30},
+        titlefont={'size':30}
     )
-    fig['layout']['annotations'] = annotation
 
     
     file_name = option_str[option] + " - x:" + str(10)

@@ -87,14 +87,14 @@ class DetectionToLocalFrameTestorNode(unittest.TestCase):
             self.assertLess(rospy.Time.now(), timeout, "Waiting for apriltag detection timed out.")
             
             rospy.loginfo("posx: %f, posy: %f, posz: %f, rotx: %f, roty: %f, rotz: %f",
-                self.vehicle_pose_euler[-1].posx, self.vehicle_pose_euler[-1].posy,
-                self.vehicle_pose_euler[-1].posz, self.vehicle_pose_euler[-1].rotx,
+                self.vehicle_pose_euler[-1].posx * 100, self.vehicle_pose_euler[-1].posy * 100,
+                self.vehicle_pose_euler[-1].posz * 100, self.vehicle_pose_euler[-1].rotx,
                 self.vehicle_pose_euler[-1].roty, self.vehicle_pose_euler[-1].rotz)
 
             # The second parameter is groundtruth, and the third one is allowed mismatch
-            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posx, 0.3, delta = self.am_p) 
-            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posy, 0, delta = self.am_p)
-            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posz, 0.05, delta = self.am_p)
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posx * 100, 30, delta = self.am_p) 
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posy * 100, 0, delta = self.am_p)
+            self.assertAlmostEqual(self.vehicle_pose_euler[-1].posz * 100, 5, delta = self.am_p)
             
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].rotx, 0, delta = self.am_r)
             self.assertAlmostEqual(self.vehicle_pose_euler[-1].roty, 0, delta = self.am_r)

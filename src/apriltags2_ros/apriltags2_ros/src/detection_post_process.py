@@ -101,8 +101,8 @@ def outputToFile(ws_params):
     orientation = [] #orientation in quaterion: camera wrt apriltag
     orientation_l = [] #orientation with frame trasformation in euler: robot wrt world
     subprocess_time = []
-    subprocess_name = [] 
-    subprocess_number = 12 # there are 12 subprocesses of in pose estimation by apriltag2
+    subprocess_name = []
+    subprocess_number = 13
 
     #save every single result into .yaml file
     for num in range(0,ws_params.des_number_of_images):
@@ -126,12 +126,23 @@ def outputToFile(ws_params):
         sub_time = {}  
         subprocess_time.append([]) 
         for i in range(0, subprocess_number):
+            #there is no decimate step if decimate = 1.0, so we need to add it manually
+            if(i == 1 and ws_params.decimate == 1.0): 
+                subprocess_time[num].append(0)
+                if(num == 0):
+                     subprocess_name.append('decimate')
+                sub_time[subprocess_name[i]] = 0
+                continue
             #extract time consumption
-            time = round(float(subprocess_time_str_split[3*i+2].split()[0]),ws_params.precision)
+            if(ws_params.decimate == 1.0 and i > 1):
+                pos = i-1
+            else:
+                pos = i
+            time = round(float(subprocess_time_str_split[3*pos+2].split()[0]),ws_params.precision)
             subprocess_time[num].append(time)
             #extract name 
             if(num == 0):
-                name = subprocess_time_str_split[3*i+1].strip()
+                name = subprocess_time_str_split[3*pos+1].strip()
                 subprocess_name.append(name)
             sub_time[subprocess_name[i]]= time
         if (num == 0):
@@ -181,7 +192,7 @@ def outputToFile(ws_params):
     cpu_ram_info = {}
     cpu_ram_info['node'] = ws_params.det_statistics[0].node
     cpu_ram_info['samples'] = ws_params.det_statistics[0].samples
-    cpu_ram_info['cpu_load (%)'] = {'mean':[], 'std':[], 'max':[]}
+    cpu_ram_info['cpu_load (%)'] = {'mean':[], 'std':[], 'max':[]} #cpu load on one core, it can be larger than 100%
     cpu_ram_info['virt_mem (MB)'] = {'mean':[], 'std':[], 'max':[]}
     cpu_ram_info['real_mem (MB)'] = {'mean':[], 'std':[], 'max':[]}
 

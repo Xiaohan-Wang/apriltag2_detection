@@ -3,7 +3,7 @@
  	<arg name="local" default="false" doc="true for running everything you possibly can on laptop. false for everything running on vehicle."/>
  	<arg name="config" default="baseline" doc="Specify a config."/>
 	<arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
-  <arg name="decimate" default="1.0" />
+  <arg name="decimate" default="1.0"/>
 
 
 	<!-- AprilTags Detections -->

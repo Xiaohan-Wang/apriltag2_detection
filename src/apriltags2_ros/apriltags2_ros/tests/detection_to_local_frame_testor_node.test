@@ -4,7 +4,7 @@
 
     <arg name="veh" default="testbot" doc="Name of vehicle. ex: megaman"/>
     <arg name="path" default="$(find apriltags2_ros)/tests/test_images" />
-    <arg name="am_p" default="0.02" />
+    <arg name="am_p" default="2" />
     <arg name="am_r" default="5" />
 
 
