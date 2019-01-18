@@ -30,7 +30,7 @@ Several test are provided in this package for testing the correctness of the sys
         * Z -> up
     2. the groundtruth for z is related to the relative height difference between camera and AprilTag. 
     3. the groundtruth for rotx and roty essentially depends on whether the Apriltag is strictly perpendicular in both x and y direction in world frame.           
-    4. It is hard to guarantee that different duckiebot and Apriltag have the very same condition, so the groundtruth of above three tests must be adjusted based on your own duckiebot and Apriltag if you want to use them.
+    4. It is hard to guarantee that different duckiebot and Apriltag have the very same condition, so the groundtruth of above three tests must be adjusted based on your own duckiebot and Apriltag if you want to use your own images.
    
 * `rostest detection_to_local_frame_testor_node.test`
 * `rostest --text detection_to_local_frame_testor_node.test` to get console output to the screen
