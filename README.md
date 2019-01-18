@@ -34,6 +34,7 @@ Several test are provided in this package for testing the correctness of the sys
    
 * `rostest detection_to_local_frame_testor_node.test`
 * `rostest --text detection_to_local_frame_testor_node.test` to get console output to the screen
+* you can also add `am_p:=![num1]` and `am_r:=![num2]` to set the allow mismatch for position and orientation. am_p = 2 and am_r = 5 by default.  
 
 ### detection_post_process_testor_node.test
 1. This test focuses on the analysis produced by `detection_post_process.launch`.
