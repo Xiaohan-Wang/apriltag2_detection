@@ -45,6 +45,8 @@ Several test are provided in this package for testing the correctness of the sys
 * `rostest detection_post_process_testor_node.test`
 * `rostest --text detection_post_process_testor_node.test` to get console output to the screen
 * optional: 
+    * `number_of_sample_images:=![num]` : same as the description above
+    * `decimate:= ![num]` : same as the description above
     * `allowed_cpu:=![num1]` : allowed cpu/ram usage on one core (it could be larger than 100%)
     * `allowed_real_memory:=![num2]` : allowed real memory usage
     * `allowed_virt_memory:=![num3]` : allowed virtual memory usage
