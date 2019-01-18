@@ -10,8 +10,8 @@ This package provides `detection_post_process.launch` to analyze the performance
 1. `catkin_make`
 2. `source devel/setup.bash`
 3. `roslaunch pi_camera camera_apriltag_demo.launch veh:=duckiebot`
-4. `roslaunch apriltags2_ros apriltag2_demo.launch veh:=duckiebot decimate:=![num]`
-    * `decimate:= ![num]` (num >= 1) is used to lessen the resolution to the 1/num of the original one, so that apriltag detection could run faster.
+4. `roslaunch apriltags2_ros apriltag2_demo.launch veh:=duckiebot` 
+	  * you can also add `decimate:= ![num]` (num >= 1) to lessen the resolution to the 1/num of the original one, so that apriltag detection could run faster. It is set to 1.0 by default.
 5. `roslaunch apriltags2_ros detection_to_local_frame.launch veh:=duckiebot`
 6. `rosparam set enable_statistics true` & `rosrun rosprofiler rosprofiler`
 7. `roslaunch apriltags2_ros detection_post_process.launch veh:=duckiebot`
