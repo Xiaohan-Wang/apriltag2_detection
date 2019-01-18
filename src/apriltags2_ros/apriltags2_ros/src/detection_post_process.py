@@ -29,6 +29,8 @@ class WorkSpaceParams(object):
     summary_folder_path = None
     date = None
     decimate = None
+    precision = 1 #decimal place
+    precision_control_str = '%0.' + str(precision) +'f'
 
     def __init__(self):
         self.prepareWorkSpace()
@@ -105,18 +107,18 @@ def outputToFile(ws_params):
     #save every single result into .yaml file
     for num in range(0,ws_params.des_number_of_images):
         #pose estimation with frame trasformation
-        position_l.append((round(ws_params.relative_pose_local_frame[num].posx*100,5), 
-            round(ws_params.relative_pose_local_frame[num].posy*100,5), 
-            round(ws_params.relative_pose_local_frame[num].posz*100,5)))
-        orientation_l.append((round(ws_params.relative_pose_local_frame[num].rotx,5), 
-            round(ws_params.relative_pose_local_frame[num].roty,5), 
-            round(ws_params.relative_pose_local_frame[num].rotz,5)))
+        position_l.append((round(ws_params.relative_pose_local_frame[num].posx*100,ws_params.precision), # change unit form m to cm: *100
+            round(ws_params.relative_pose_local_frame[num].posy*100,ws_params.precision), 
+            round(ws_params.relative_pose_local_frame[num].posz*100,ws_params.precision)))
+        orientation_l.append((round(ws_params.relative_pose_local_frame[num].rotx,ws_params.precision), 
+            round(ws_params.relative_pose_local_frame[num].roty,ws_params.precision), 
+            round(ws_params.relative_pose_local_frame[num].rotz,ws_params.precision)))
         
         #pose estimation
         pos_temp = ws_params.relative_pose[num].pose.pose.pose.position
         ori_temp = ws_params.relative_pose[num].pose.pose.pose.orientation
-        position.append((round(pos_temp.x*100,5),round(pos_temp.y*100,5),round(pos_temp.z*100,5)))
-        orientation.append((round(ori_temp.x,5),round(ori_temp.y,5),round(ori_temp.z,5),round(ori_temp.w,5)))
+        position.append((round(pos_temp.x*100,ws_params.precision),round(pos_temp.y*100,ws_params.precision),round(pos_temp.z*100,ws_params.precision)))
+        orientation.append((round(ori_temp.x,ws_params.precision),round(ori_temp.y,ws_params.precision),round(ori_temp.z,ws_params.precision),round(ori_temp.w,ws_params.precision)))
 
         #extract name and time consumption of each subprocess in pose estimation from received message
         subprocess_time_str =  ws_params.subprocess_time_str[num].data
@@ -125,7 +127,7 @@ def outputToFile(ws_params):
         subprocess_time.append([]) 
         for i in range(0, subprocess_number):
             #extract time consumption
-            time = round(float(subprocess_time_str_split[3*i+2].split()[0]),5)
+            time = round(float(subprocess_time_str_split[3*i+2].split()[0]),ws_params.precision)
             subprocess_time[num].append(time)
             #extract name 
             if(num == 0):
@@ -134,7 +136,7 @@ def outputToFile(ws_params):
             sub_time[subprocess_name[i]]= time
         if (num == 0):
             subprocess_name.append('total time consumption')
-        sub_time[subprocess_name[-1]] = round(float(subprocess_time_str_split[-1].split()[0]),5)
+        sub_time[subprocess_name[-1]] = round(float(subprocess_time_str_split[-1].split()[0]),ws_params.precision)
         subprocess_time[num].append(sub_time[subprocess_name[-1]])
 
         single_result = {
@@ -155,12 +157,12 @@ def outputToFile(ws_params):
     x,y,z = zip(*position_l)
     ox,oy,oz = zip(*orientation_l)
     apriltag_output = {
-        'x (cm)':{'mean':float('%0.5f' %np.mean(x)),'min':min(x),'max':max(x),'range':float('%0.5f' %(max(x)-min(x))),'variance':float('%0.5f' %np.var(x))},
-        'y (cm)':{'mean':float('%0.5f' %np.mean(y)),'min':min(y),'max':max(y),'range':float('%0.5f' %(max(y)-min(y))),'variance':float('%0.5f' %np.var(y))},
-        'z (cm)':{'mean':float('%0.5f' %np.mean(z)),'min':min(z),'max':max(z),'range':float('%0.5f' %(max(z)-min(z))),'variance':float('%0.5f' %np.var(z))},
-        'ox (degree)':{'mean':float('%0.5f' %np.mean(ox)),'min':min(ox),'max':max(ox),'range':float('%0.5f' %(max(ox)-min(ox))),'variance':float('%0.5f' %np.var(ox))},
-        'oy (degree)':{'mean':float('%0.5f' %np.mean(oy)),'min':min(oy),'max':max(oy),'range':float('%0.5f' %(max(oy)-min(oy))),'variance':float('%0.5f' %np.var(oy))},
-        'oz (degree)':{'mean':float('%0.5f' %np.mean(oz)),'min':min(oz),'max':max(oz),'range':float('%0.5f' %(max(oz)-min(oz))),'variance':float('%0.5f' %np.var(oz))},
+        'x (cm)':{'mean':float(ws_params.precision_control_str %np.mean(x)),'min':min(x),'max':max(x),'range':float(ws_params.precision_control_str %(max(x)-min(x))),'variance':float(ws_params.precision_control_str %np.var(x))},
+        'y (cm)':{'mean':float(ws_params.precision_control_str %np.mean(y)),'min':min(y),'max':max(y),'range':float(ws_params.precision_control_str %(max(y)-min(y))),'variance':float(ws_params.precision_control_str %np.var(y))},
+        'z (cm)':{'mean':float(ws_params.precision_control_str %np.mean(z)),'min':min(z),'max':max(z),'range':float(ws_params.precision_control_str %(max(z)-min(z))),'variance':float(ws_params.precision_control_str %np.var(z))},
+        'ox (degree)':{'mean':float(ws_params.precision_control_str %np.mean(ox)),'min':min(ox),'max':max(ox),'range':float(ws_params.precision_control_str %(max(ox)-min(ox))),'variance':float(ws_params.precision_control_str %np.var(ox))},
+        'oy (degree)':{'mean':float(ws_params.precision_control_str %np.mean(oy)),'min':min(oy),'max':max(oy),'range':float(ws_params.precision_control_str %(max(oy)-min(oy))),'variance':float(ws_params.precision_control_str %np.var(oy))},
+        'oz (degree)':{'mean':float(ws_params.precision_control_str %np.mean(oz)),'min':min(oz),'max':max(oz),'range':float(ws_params.precision_control_str %(max(oz)-min(oz))),'variance':float(ws_params.precision_control_str %np.var(oz))},
     }
     
     #compute mean, min, max, range and variance of time comsumption of each subprocess 
@@ -168,11 +170,11 @@ def outputToFile(ws_params):
     time_consumption = {}
     for i in range(0, subprocess_number + 1): # subprocesses + total time consumption
         time_consumption[subprocess_name[i]] = {
-            'mean':float('%0.5f' %np.mean(subprocess_time_comsumption[i])),
+            'mean':float(ws_params.precision_control_str %np.mean(subprocess_time_comsumption[i])),
             'min':min(subprocess_time_comsumption[i]),
             'max':max(subprocess_time_comsumption[i]),
-            'range':float('%0.5f' %(max(subprocess_time_comsumption[i])-min(subprocess_time_comsumption[i]))),
-            'variance':float('%0.5f' %np.var(subprocess_time_comsumption[i]))
+            'range':float(ws_params.precision_control_str %(max(subprocess_time_comsumption[i])-min(subprocess_time_comsumption[i]))),
+            'variance':float(ws_params.precision_control_str %np.var(subprocess_time_comsumption[i]))
         }
 
     #unpack received cpu/ram messages
@@ -184,15 +186,15 @@ def outputToFile(ws_params):
     cpu_ram_info['real_mem (MB)'] = {'mean':[], 'std':[], 'max':[]}
 
     for data in ws_params.det_statistics:
-        cpu_ram_info['cpu_load (%)']['mean'].append(round(data.cpu_load_mean,5))
-        cpu_ram_info['cpu_load (%)']['std'].append(round(data.cpu_load_std,5))
-        cpu_ram_info['cpu_load (%)']['max'].append(round(data.cpu_load_max,5))
-        cpu_ram_info['virt_mem (MB)']['mean'].append(round(data.virt_mem_mean/1024/1024,5))
-        cpu_ram_info['virt_mem (MB)']['std'].append(round(data.virt_mem_std/1024/1024,5))
+        cpu_ram_info['cpu_load (%)']['mean'].append(round(data.cpu_load_mean,ws_params.precision))
+        cpu_ram_info['cpu_load (%)']['std'].append(round(data.cpu_load_std,ws_params.precision))
+        cpu_ram_info['cpu_load (%)']['max'].append(round(data.cpu_load_max,ws_params.precision))
+        cpu_ram_info['virt_mem (MB)']['mean'].append(round(data.virt_mem_mean/1024/1024,ws_params.precision))
+        cpu_ram_info['virt_mem (MB)']['std'].append(round(data.virt_mem_std/1024/1024,ws_params.precision))
         cpu_ram_info['virt_mem (MB)']['max'].append(round(data.virt_mem_max/1024/1024))
-        cpu_ram_info['real_mem (MB)']['mean'].append(round(data.real_mem_mean/1024/1024,5))
-        cpu_ram_info['real_mem (MB)']['std'].append(round(data.real_mem_std/1024/1024,5))
-        cpu_ram_info['real_mem (MB)']['max'].append(round(data.real_mem_max/1024/1024,5))
+        cpu_ram_info['real_mem (MB)']['mean'].append(round(data.real_mem_mean/1024/1024,ws_params.precision))
+        cpu_ram_info['real_mem (MB)']['std'].append(round(data.real_mem_std/1024/1024,ws_params.precision))
+        cpu_ram_info['real_mem (MB)']['max'].append(round(data.real_mem_max/1024/1024,ws_params.precision))
     
     #compute mean and max of cpu/ram usage
     cpu_load_mean = float(np.mean(cpu_ram_info['cpu_load (%)']['mean']))
@@ -208,17 +210,17 @@ def outputToFile(ws_params):
     cpu_summary = {
         'total number of cpu/ram messages': len(ws_params.det_statistics),
         'cpu_load (%)':{
-            'mean':round(cpu_load_mean,5),
+            'mean':round(cpu_load_mean,ws_params.precision),
             'max':cpu_load_max,
             'index of max':cpu_ram_info['cpu_load (%)']['max'].index(cpu_load_max)
         },
         'virt_mem (MB)':{
-            'mean':round(virt_mem_mean,5),
+            'mean':round(virt_mem_mean,ws_params.precision),
             'max':virt_mem_max,
             'index of max': cpu_ram_info['virt_mem (MB)']['max'].index(virt_mem_max)
         },
         'real_mem (MB)':{
-            'mean':round(real_mem_mean,5),
+            'mean':round(real_mem_mean,ws_params.precision),
             'max':real_mem_max,
             'index of max': cpu_ram_info['real_mem (MB)']['max'].index(real_mem_max)
         },

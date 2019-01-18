@@ -6,7 +6,7 @@ from ruamel import yaml
 import numpy as np
 import copy
 
-option = 3 # select from [1,2,3]
+option = 1 # select from [1,2,3]
 option_str = {1:'cpu_load (%)', 2:'virt_mem (MB)', 3:'real_mem (MB)'} 
 
 path_name = os.getcwd()
@@ -21,10 +21,10 @@ tem_annotation = {
     "x":None,
     "y":None
 }
-annotation = []
 
 # a box plot for each x
-for x in range(10,31,2):
+for x in range(10,31,8):
+    annotation = []
     fig = tools.make_subplots(rows=1, cols=2, subplot_titles=('max usage','mean usage'))
 
     for filename in os.listdir(summary_path):
@@ -55,8 +55,7 @@ for x in range(10,31,2):
             trace_max =go.Box(
                             name = str(groundtruth_y), 
                             x = [groundtruth_y]*total_num,
-            		        y = data_max,
-                            text = str(max_position*100)+'%'
+            		        y = data_max
             	        )
 
             fig.append_trace(trace_max,1,1)
