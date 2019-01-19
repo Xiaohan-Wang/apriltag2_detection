@@ -37,6 +37,13 @@ Several test are provided in this package for testing the correctness of the sys
 * you can also add `am_p:=![num1]` and `am_r:=![num2]` to set the allow mismatch for position and orientation. am_p = 2 and am_r = 5 by default.  
 
 ### detection_post_process_testor_node.test
+**Note: The input prompts for detection_post_process node is hard to see now because they are flushed by the output of other nodes (Need to be fixed). But basicly remember there are three inputs for detection_post_process node:**
+  * groundtruth x:
+  * groundtruth y:
+  * groundtruth yaw:
+
+**The unittest can run correctly only after receiving these three inputs.**
+
 1. This test focuses on the analysis produced by `detection_post_process.launch`.
 2. In this test, you need to put an Apriltag in front of a duckiebot. When you execute this test, we automaticly start the nodes decribed in _result analysis_ part, collect a certain number of estimated pose, and then analyze them.
 3. To successfully pass the test, the mean of cpu/ram comsumption and the range and variance of each dimension of pose estimation are required to be smaller than a certain value (you can pass these values as parameters when you launch this test).
