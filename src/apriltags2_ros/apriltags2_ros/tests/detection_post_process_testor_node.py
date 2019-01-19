@@ -23,21 +23,13 @@ class DetectionPostProcessTestorNode(unittest.TestCase):
         self.pose_analysis = rospy.Subscriber( "relative_pose_estimation_analysis", String, self.tagCallback)
 
         # Wait for the node to finish starting up
-        timeout = rospy.Time.now() + rospy.Duration(5) # Wait at most 5 seconds for the node to come up
-        while self.pose_analysis.get_num_connections() < 1 and not rospy.is_shutdown() and rospy.Time.now() < timeout:
+        timeout = rospy.Time.now() + rospy.Duration(30) # Wait at most 30 seconds for the node to come up
+        while not self.relative_pose_analysis and not rospy.is_shutdown() and rospy.Time.now() < timeout:
             rospy.sleep(0.1)
 
     def tagCallback(self, msg):
         self.relative_pose_analysis = True
         self.summary_file_path = msg.data
-
-    def test_publisher_and_subscriber(self):
-        '''
-        test whether the name of the topic is correct
-        '''
-        self.setup()    # Setup the node
-        self.assertGreaterEqual(self.pose_analysis.get_num_connections(), 1, "No connections found on pose_analysis topic")
-
         
     def test_relative_pose_estimation(self):
         '''
@@ -45,12 +37,7 @@ class DetectionPostProcessTestorNode(unittest.TestCase):
         require them to be smaller than a certain value
         '''
         self.setup()    # Setup the node
-        
-        # Wait for the message to be received
-        timeout = rospy.Time.now() + rospy.Duration(15) # Wait at most 15 seconds for the node to reply
-        while not self.relative_pose_analysis and not rospy.is_shutdown() and rospy.Time.now() < timeout:
-            rospy.sleep(0.1)
-        self.assertLess(rospy.Time.now(), timeout, "Waiting for pose estimation analysis timed out.")
+        self.assertEqual(self.relative_pose_analysis, True, "Waiting for pose estimation analysis timed out")
 
         with open(self.summary_file_path, 'r') as f:
             summary = yaml.load(f.read())

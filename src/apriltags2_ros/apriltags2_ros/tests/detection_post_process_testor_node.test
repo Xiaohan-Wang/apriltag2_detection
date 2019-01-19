@@ -18,8 +18,9 @@
     </include>
 
  	<!-- AprilTags Detections -->
-    <include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
+    <include file="$(find apriltags2_ros)/launch/apriltag2_demo.launch">
       <arg name="veh" value="$(arg veh)"/>
+      <arg name="decimate" value="$(arg decimate)"/>
     </include>
   
   <!--detection_to_local_frame Node-->
@@ -34,6 +35,7 @@
   <!--detection_post_process-->
     <include file="$(find apriltags2_ros)/launch/detection_post_process.launch">
       <arg name="veh" value="$(arg veh)"/>
+      <arg name="number_of_images" value="$(arg number_of_sample_images)"/>
     </include>
   
 
