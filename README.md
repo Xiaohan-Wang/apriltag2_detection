@@ -42,8 +42,8 @@ Several test are provided in this package for testing the correctness of the sys
 3. To successfully pass the test, the mean of cpu/ram comsumption and the range and variance of each dimension of pose estimation are required to be smaller than a certain value (you can pass these values as parameters when you launch this test).
 4. It should be noted that the cpu/ram usage tests only make sense for rasp pi as they will run faster on local PC. Also pay attention that the upper limit for cpu/ram comsumption should be adjusted based on your own duckiebot when you use this test.
 
-* `rostest detection_post_process_testor_node.test`
-* `rostest --text detection_post_process_testor_node.test` to get console output to the screen
+* `rostest detection_post_process_testor_node.test veh:=duckiebot`
+* `rostest --text detection_post_process_testor_node.test veh:=duckiebot` to get console output to the screen
 * optional: 
     * `number_of_sample_images:=![num]` : same as the description above
     * `decimate:= ![num]` : same as the description above
