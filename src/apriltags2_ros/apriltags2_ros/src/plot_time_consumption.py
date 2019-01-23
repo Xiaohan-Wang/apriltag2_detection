@@ -6,6 +6,7 @@ from ruamel import yaml
 import numpy as np
 import copy
 
+plot_x = 30
 option = 2 # select from [1,2]
 option_name = {1:'decimate rate - processing time', 2:'x (cm) - processing time'}
 subprocess_name = {
@@ -25,7 +26,7 @@ subprocess_name = {
 }  
 
 #summary file path
-summary_path = '/home/xiaohan/duckietown/apriltag2_detection/src/apriltags2_ros/apriltags2_ros/test_result/summary/summary1' 
+summary_path = '/home/xiaohan/duckietown/apriltag2_detection/src/apriltags2_ros/apriltags2_ros/test_result/summary' 
 
 mean_time = []
 max_time = []
@@ -38,6 +39,8 @@ x = []
 fig = tools.make_subplots(rows=1, cols=2, subplot_titles=('average time usage','maximum time usage'))
 for filename in os.listdir(summary_path):
     groundtruth_x = float(filename.split('_')[2])
+    if(groundtruth_x != plot_x):
+        continue;
     groundtruth_y = float(filename.split('_')[3])
     groundtruth_yaw = float(filename.split('_')[4])
     decimate = float(filename.split('_')[5])
@@ -76,15 +79,15 @@ else:
     fig['layout']['xaxis1'].update(title='x (cm)', titlefont={'size':20})
     fig['layout']['xaxis2'].update(title='x (cm)', titlefont={'size':20})
 
-fig['layout']['yaxis1'].update(title='average time usage / ms', titlefont={'size':20}, autorange = True)
-fig['layout']['yaxis2'].update(title='maximum time usage / ms', titlefont={'size':20}, autorange = True)
+fig['layout']['yaxis1'].update(title='average time usage (ms)', titlefont={'size':20}, autorange = True)
+fig['layout']['yaxis2'].update(title='maximum time usage (ms)', titlefont={'size':20}, autorange = True)
 
 fig['layout'].update(
-    title = option_name[option], 
+    title = option_name[option] + '(x=' + str(groundtruth_x) + ' y=0 yaw=0)', 
     titlefont={'size':30},
     barmode='stack'
 )
 
-py.plot(fig, filename=option_name[option])
+py.plot(fig, filename=option_name[option] + '(x=' + str(groundtruth_x) + ' y=0 yaw=0)')
 
 
