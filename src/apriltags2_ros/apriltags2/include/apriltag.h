@@ -274,7 +274,8 @@ void apriltag_detector_destroy(apriltag_detector_t *td);
 // apriltag_detection_t*. You can use apriltag_detections_destroy to
 // free the array and the detections it contains, or call
 // _detection_destroy and zarray_destroy yourself.
-zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig);
+// decimate_raw_image used to output the decimated image
+zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig, image_u8_t** decimate_raw_image);
 
 // Call this method on each of the tags returned by apriltag_detector_detect
 void apriltag_detection_destroy(apriltag_detection_t *det);

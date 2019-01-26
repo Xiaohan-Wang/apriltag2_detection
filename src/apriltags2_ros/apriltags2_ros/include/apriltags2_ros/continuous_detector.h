@@ -72,7 +72,7 @@ class ContinuousDetector
   image_transport::Publisher tag_detections_image_publisher_;
   ros::Publisher tag_detections_publisher_;
   ros::Publisher subprocess_timings_publisher_;
-
+  image_transport::Publisher draw_decimated_raw_image_;
 
   bool on_switch;
 };

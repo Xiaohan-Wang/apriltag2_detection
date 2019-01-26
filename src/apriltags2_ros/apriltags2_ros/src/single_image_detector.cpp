@@ -76,9 +76,10 @@ bool SingleImageDetector::analyzeImage(
   cv_bridge::CvImagePtr loaded_image(new cv_bridge::CvImage(std_msgs::Header(),
                                                             "bgr8", image));
   loaded_image->header.frame_id = "camera";
+  cv::Mat decimated_raw_image;
   response.tag_detections =
       tag_detector_.detectTags(loaded_image,sensor_msgs::CameraInfoConstPtr(
-          new sensor_msgs::CameraInfo(request.camera_info)));
+          new sensor_msgs::CameraInfo(request.camera_info)), decimated_raw_image);
 
   // Publish detected tags (AprilTagDetectionArray, basically an array of
   // geometry_msgs/PoseWithCovarianceStamped)

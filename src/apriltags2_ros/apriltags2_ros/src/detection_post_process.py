@@ -11,6 +11,10 @@ from ros_statistics_msgs.msg import NodeStatistics
 from math import atan2,asin
 from apriltags2_ros.msg import VehiclePoseEuler
 from apriltags2_ros_post_process.rotation_utils import *
+import cv2
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge, CvBridgeError
+
 
 class WorkSpaceParams(object):
     host_name = None
@@ -18,6 +22,7 @@ class WorkSpaceParams(object):
     groundtruth_y = None
     groundtruth_yaw = None
     des_number_of_images = None # desired number of pose estimation
+    recieved_decimated_image = 0 # number of received pose estimation
     recieved_images = 0 # number of received pose estimation
     recieved_subprocess_time = 0 # number of received messages of processing time 
     recieved_pose_local_frame = 0 # number of received pose estimation with frame transformation
@@ -25,6 +30,7 @@ class WorkSpaceParams(object):
     relative_pose_local_frame = [] # received pose estimation with frame transformation
     subprocess_time_str = [] # received processing time
     det_statistics = [] #received cpu/ram usage
+    decimated_raw_image = []
     single_result_folder_path = None
     summary_folder_path = None
     date = None
@@ -52,6 +58,12 @@ class WorkSpaceParams(object):
         if not path.isdir(self.summary_folder_path):
             makedirs(self.summary_folder_path)
 
+        # summary folder is used to save summary info (max, min, mean, cpu/ram usage etc) 
+        # computed from all the single pose estimation
+        self.raw_image_folder_path = path.join(self.parent_path, "test_result", "raw_image")
+        if not path.isdir(self.raw_image_folder_path):
+            makedirs(self.raw_image_folder_path)
+
 # pose estimation
 def cbDetection(msg, ws_params):
     if(ws_params.recieved_images < ws_params.des_number_of_images and len(msg.detections)>0 ):
@@ -60,7 +72,8 @@ def cbDetection(msg, ws_params):
         ws_params.recieved_images += 1
         if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
             and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images
-            and ws_params.recieved_images == ws_params.des_number_of_images):
+            and ws_params.recieved_images == ws_params.des_number_of_images
+            and ws_params.recieved_decimated_image == ws_params.des_number_of_images):
             outputToFile(ws_params)
 
 # pose estimation with frame transformation
@@ -71,7 +84,8 @@ def cbVehPoseEuler(msg, ws_params):
         ws_params.recieved_pose_local_frame += 1
         if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
             and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images
-            and ws_params.recieved_images == ws_params.des_number_of_images):
+            and ws_params.recieved_images == ws_params.des_number_of_images
+            and ws_params.recieved_decimated_image == ws_params.des_number_of_images):
             outputToFile(ws_params)
 
 # processing time
@@ -82,7 +96,20 @@ def cbSubprocessTime(msg, ws_params):
         ws_params.recieved_subprocess_time += 1
         if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
             and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images 
-            and ws_params.recieved_images == ws_params.des_number_of_images):
+            and ws_params.recieved_images == ws_params.des_number_of_images
+            and ws_params.recieved_decimated_image == ws_params.des_number_of_images):
+            outputToFile(ws_params)
+
+# processing time
+def cbDecimatedImage(msg, ws_params):
+    if(ws_params.recieved_decimated_image < ws_params.des_number_of_images):  
+        ws_params.decimated_raw_image.append(msg)
+        print("[POST-PROCESSNG NODE] recorded decimated raw image {} ".format(str(ws_params.recieved_subprocess_time + 1)))
+        ws_params.recieved_decimated_image += 1
+        if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
+            and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images 
+            and ws_params.recieved_images == ws_params.des_number_of_images
+            and ws_params.recieved_decimated_image == ws_params.des_number_of_images):
             outputToFile(ws_params)
 
 # cpu/ram usage
@@ -90,7 +117,8 @@ def cbDetStatistic(msg, ws_params):
     if(msg.node == ws_params.host_name + 'apriltag2_detector_node'):
         if(not(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
             and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images 
-            and ws_params.recieved_images == ws_params.des_number_of_images)):
+            and ws_params.recieved_images == ws_params.des_number_of_images
+            and ws_params.recieved_decimated_image == ws_params.des_number_of_images)):
             ws_params.det_statistics.append(msg)
 
 
@@ -103,6 +131,16 @@ def outputToFile(ws_params):
     subprocess_time = []
     subprocess_name = []
     subprocess_number = 13
+    
+    #save decimate raw image
+    for num in range(0, ws_params.des_number_of_images):
+        try:
+            img = CvBridge().imgmsg_to_cv2(ws_params.decimated_raw_image[num], "mono8")
+        except CvBridgeError as e:
+            ROS_ERROR("cv_bridge exception: %s", e);
+
+        name = path.join(ws_params.raw_image_folder_path , ws_params.date + '_' + str(num + 1) + '.png')
+        cv2.imwrite(name, img)
 
     #save every single result into .yaml file
     for num in range(0,ws_params.des_number_of_images):
@@ -277,6 +315,7 @@ if __name__ == '__main__':
     sub_img = rospy.Subscriber("tag_detections", AprilTagDetectionArray, cbDetection, ws_params)
     veh_pose_euler = rospy.Subscriber("tag_detections_local_frame", VehiclePoseEuler, cbVehPoseEuler, ws_params)
     sub_time = rospy.Subscriber("subprocess_timings", String, cbSubprocessTime, ws_params)
+    sub_time = rospy.Subscriber("decimated_raw_image", Image, cbDecimatedImage, ws_params)
     detection_statistics = rospy.Subscriber("/node_statistics", NodeStatistics, cbDetStatistic, ws_params)
     relative_pose_estimation_analysis= rospy.Publisher("relative_pose_estimation_analysis", String, queue_size=1, latch=True)
     rospy.spin()

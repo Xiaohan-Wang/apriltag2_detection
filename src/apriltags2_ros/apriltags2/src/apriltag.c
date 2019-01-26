@@ -1091,7 +1091,7 @@ int prefer_smaller(int pref, double q0, double q1)
     return 0;
 }
 
-zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
+zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig, image_u8_t** decimate_raw_image)
 {
     if (zarray_size(td->tag_families) == 0) {
         zarray_t *s = zarray_create(sizeof(apriltag_detection_t*));
@@ -1116,6 +1116,8 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
 
         timeprofile_stamp(td->tp, "decimate");
     }
+    *decimate_raw_image = image_u8_copy(quad_im); //output the raw image
+
 
     if (td->quad_sigma != 0) {
         // compute a reasonable kernel width by figuring that the

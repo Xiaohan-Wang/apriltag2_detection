@@ -216,7 +216,8 @@ private:
   // Detect tags in an image
   AprilTagDetectionArray detectTags(
       const cv_bridge::CvImagePtr& image,
-      const sensor_msgs::CameraInfoConstPtr& camera_info);
+      const sensor_msgs::CameraInfoConstPtr& camera_info,
+      cv::Mat& decimated_raw_image);
 
   // Get the pose of the tag in the camera frame
   // Returns homogeneous transformation matrix [R,t;[0 0 0 1]] which

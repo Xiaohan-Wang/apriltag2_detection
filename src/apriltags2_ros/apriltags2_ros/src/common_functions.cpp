@@ -185,7 +185,8 @@ TagDetector::~TagDetector() {
 
 AprilTagDetectionArray TagDetector::detectTags (
     const cv_bridge::CvImagePtr& image,
-    const sensor_msgs::CameraInfoConstPtr& camera_info) {
+    const sensor_msgs::CameraInfoConstPtr& camera_info,
+    cv::Mat& decimated_raw_image) {
   // Convert image to AprilTag code's format
   cv::Mat gray_image;
   cv::cvtColor(image->image, gray_image, CV_BGR2GRAY);
@@ -200,9 +201,14 @@ AprilTagDetectionArray TagDetector::detectTags (
   double fy = camera_info->K[4]; // focal length in camera y-direction [px]
   double cx = camera_info->K[2]; // optical center x-coordinate [px]
   double cy = camera_info->K[5]; // optical center y-coordinate [px]
-
+  
+  // restore the decimated raw image
+  image_u8_t *decimated_image = NULL;
   // Run AprilTags 2 algorithm on the image
-  detections_ = apriltag_detector_detect(td_, &apriltags2_image);
+  detections_ = apriltag_detector_detect(td_, &apriltags2_image, &decimated_image); 
+  cv::Mat temp(decimated_image->height, decimated_image->width, CV_8UC1, decimated_image->buf, decimated_image->stride);
+  temp.copyTo(decimated_raw_image);
+  image_u8_destroy(decimated_image);
 
 
   // Restriction: any tag ID can appear at most once in the scene. Thus, get all

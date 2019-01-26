@@ -52,6 +52,9 @@ ContinuousDetector::ContinuousDetector (ros::NodeHandle& nh,
   subprocess_timings_publisher_ =
       nh.advertise<std_msgs::String>("subprocess_timings", 1);
 
+  draw_decimated_raw_image_ =
+      it_.advertise("decimated_raw_image", 1);
+
   //on_switch = false;
   on_switch = true;
 
@@ -83,8 +86,11 @@ void ContinuousDetector::imageCallback (
   }
 
   // Publish detected tags in the image by AprilTags 2
+  cv::Mat decimated_raw_image_;
   tag_detections_publisher_.publish(
-      tag_detector_.detectTags(cv_image_,camera_info));
+      tag_detector_.detectTags(cv_image_,camera_info, decimated_raw_image_));
+  sensor_msgs::ImagePtr decimated_image_msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", decimated_raw_image_).toImageMsg();
+  draw_decimated_raw_image_.publish(decimated_image_msg);
 
   subprocess_timings_publisher_.publish(tag_detector_.timings_);
   // Publish the camera image overlaid by outlines of the detected tags and
