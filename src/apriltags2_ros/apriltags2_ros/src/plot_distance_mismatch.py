@@ -11,14 +11,15 @@ mismatch_option = {1:'x (cm)', 2:'y (cm)', 3:'oz (degree)'}  # test option;  oz 
 
 groundtruth = {'x (cm)':[], 'y (cm)':[], 'oz (degree)':[]} # oz represents yaw
 mismatch = [] #mismatch 
-stdv = [] #standerdvariance
+stdv = [] #variance
 text = []
 
-path_name = os.getcwd()
-parent_path = os.path.dirname(path_name)
-summary_path = os.path.join(parent_path, "test_result", "summary")
+summary_path = '/home/xiaohan/duckietown/apriltag2_detection/src/apriltags2_ros/apriltags2_ros/test_data/decimate=1-12/summary'
 
 for filename in os.listdir(summary_path):
+    decimate = float(filename.split('_')[5])
+    if(decimate != 1):
+        continue
     # obtain groundtruth from filenames
     groundtruth['x (cm)'].append(float(filename.split('_')[2])) 
     groundtruth['y (cm)'].append(float(filename.split('_')[3]))
@@ -79,6 +80,6 @@ layout = go.Layout(
 
 fig = go.Figure(data=data, layout=layout)
 
-file_name = 'mismatch for ' + mismatch_option[option] + ' (yaw= '+ str(groundtruth['oz (degree)'][0]) + ')'
+file_name = 'distance - mismatch for ' + mismatch_option[option] + ' (yaw=0)'
 py.plot(fig, filename=file_name)
 

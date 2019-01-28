@@ -22,8 +22,8 @@ class WorkSpaceParams(object):
     groundtruth_y = None
     groundtruth_yaw = None
     des_number_of_images = None # desired number of pose estimation
-    recieved_decimated_image = 0 # number of received pose estimation
-    recieved_images = 0 # number of received pose estimation
+    recieved_decimated_image = 0 # number of received decimated raw image
+    recieved_pose = 0 # number of received pose estimation
     recieved_subprocess_time = 0 # number of received messages of processing time 
     recieved_pose_local_frame = 0 # number of received pose estimation with frame transformation
     relative_pose = [] # relative pose estimation
@@ -66,13 +66,13 @@ class WorkSpaceParams(object):
 
 # pose estimation
 def cbDetection(msg, ws_params):
-    if(ws_params.recieved_images < ws_params.des_number_of_images and len(msg.detections)>0 ):
+    if(ws_params.recieved_pose < ws_params.des_number_of_images and len(msg.detections)>0 ):
         ws_params.relative_pose.append(msg.detections[0])
-        print("[POST-PROCESSNG NODE] recorded scene number {} ".format(str(ws_params.recieved_images + 1)))
-        ws_params.recieved_images += 1
+        print("[POST-PROCESSNG NODE] recorded scene number {} ".format(str(ws_params.recieved_pose + 1)))
+        ws_params.recieved_pose += 1
         if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
             and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images
-            and ws_params.recieved_images == ws_params.des_number_of_images
+            and ws_params.recieved_pose == ws_params.des_number_of_images
             and ws_params.recieved_decimated_image == ws_params.des_number_of_images):
             outputToFile(ws_params)
 
@@ -84,7 +84,7 @@ def cbVehPoseEuler(msg, ws_params):
         ws_params.recieved_pose_local_frame += 1
         if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
             and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images
-            and ws_params.recieved_images == ws_params.des_number_of_images
+            and ws_params.recieved_pose == ws_params.des_number_of_images
             and ws_params.recieved_decimated_image == ws_params.des_number_of_images):
             outputToFile(ws_params)
 
@@ -96,19 +96,19 @@ def cbSubprocessTime(msg, ws_params):
         ws_params.recieved_subprocess_time += 1
         if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
             and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images 
-            and ws_params.recieved_images == ws_params.des_number_of_images
+            and ws_params.recieved_pose == ws_params.des_number_of_images
             and ws_params.recieved_decimated_image == ws_params.des_number_of_images):
             outputToFile(ws_params)
 
-# processing time
+# decimated raw image
 def cbDecimatedImage(msg, ws_params):
     if(ws_params.recieved_decimated_image < ws_params.des_number_of_images):  
         ws_params.decimated_raw_image.append(msg)
-        print("[POST-PROCESSNG NODE] recorded decimated raw image {} ".format(str(ws_params.recieved_subprocess_time + 1)))
+        print("[POST-PROCESSNG NODE] recorded decimated raw image {} ".format(str(ws_params.recieved_decimated_image + 1)))
         ws_params.recieved_decimated_image += 1
         if(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
             and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images 
-            and ws_params.recieved_images == ws_params.des_number_of_images
+            and ws_params.recieved_pose == ws_params.des_number_of_images
             and ws_params.recieved_decimated_image == ws_params.des_number_of_images):
             outputToFile(ws_params)
 
@@ -117,7 +117,7 @@ def cbDetStatistic(msg, ws_params):
     if(msg.node == ws_params.host_name + 'apriltag2_detector_node'):
         if(not(ws_params.recieved_subprocess_time == ws_params.des_number_of_images 
             and ws_params.recieved_pose_local_frame == ws_params.des_number_of_images 
-            and ws_params.recieved_images == ws_params.des_number_of_images
+            and ws_params.recieved_pose == ws_params.des_number_of_images
             and ws_params.recieved_decimated_image == ws_params.des_number_of_images)):
             ws_params.det_statistics.append(msg)
 
@@ -139,7 +139,7 @@ def outputToFile(ws_params):
         except CvBridgeError as e:
             ROS_ERROR("cv_bridge exception: %s", e);
 
-        name = path.join(ws_params.raw_image_folder_path , ws_params.date + '_' + str(num + 1) + '.png')
+        name = path.join(ws_params.raw_image_folder_path , ws_params.date + '_' + str(ws_params.decimate) + '_' + str(num + 1) + '.png')
         cv2.imwrite(name, img)
 
     #save every single result into .yaml file
